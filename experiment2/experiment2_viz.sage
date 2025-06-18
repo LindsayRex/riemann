@@ -1,493 +1,330 @@
-# ############################################################################
-#
-# EXPERIMENT 2: TWO-ZERO INTERACTION - VISUALIZATION
-# ===================================================
-#
-# This module creates visualizations for two-zero interaction analysis,
-# including energy landscapes, interference patterns, and stability plots.
-#
-# Key visualizations:
-# - Individual vs joint perturbation energy curves
-# - Interference pattern plots
-# - Cross-coupling coefficient visualization
-# - Stability analysis summary plots
-# - Comparative energy landscape plots
-#
-# ############################################################################
+#!/usr/bin/env sage
 
+import h5py
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-import time
-from sage.all import *
+import json
+import os
 
 class Experiment2Viz:
-    """Visualization module for two-zero interaction experiments."""
-    
-    def __init__(self, style='seaborn-v0_8', figsize_default=(12, 8), dpi=300):
-        """
-        Initialize visualization module.
-        
-        Args:
-            style: Matplotlib style
-            figsize_default: Default figure size
-            dpi: Resolution for saved figures
-        """
-        self.style = style
-        self.figsize_default = figsize_default
-        self.dpi = dpi
-        
-        # Set matplotlib style
-        try:
-            plt.style.use(style)
-        except:
-            plt.style.use('default')
-        
-        # Color scheme for consistency
-        self.colors = {
-            'zero1': '#1f77b4',  # Blue
-            'zero2': '#ff7f0e',  # Orange  
-            'joint': '#2ca02c',  # Green
-            'interference': '#d62728',  # Red
-            'fit': '#9467bd',    # Purple
-            'critical': '#8c564b'  # Brown
+    def __init__(self, hdf5_file="experiment2_two_zero_interaction.h5", batch_mode=False):
+        self.hdf5_file = hdf5_file
+        self.batch_mode = batch_mode
+
+    def load_metadata(self, f):
+        meta = f['metadata']
+        return {
+            'gamma1': meta.attrs['gamma_1'],
+            'gamma2': meta.attrs['gamma_2'],
+            'description': meta.attrs['description'],
+            'basis': meta.attrs['test_function_basis']
         }
-        
-        print(f"Experiment 2 Visualization Module initialized")
-        print(f"  Style: {style}, DPI: {dpi}")
-    
-    def plot_energy_perturbations(self, math_results, stats_results, save_path="experiment2_energy_perturbations.png"):
-        """
-        Create comprehensive energy perturbation plot.
-        
-        Args:
-            math_results: Results from experiment2_math
-            stats_results: Results from experiment2_stats
-            save_path: Path to save the plot
-            
-        Returns:
-            str: Path to saved plot
-        """
-        print("Creating energy perturbation visualization...")
-        
-        # Extract data
-        individual = math_results['individual']
-        joint = math_results['joint']
-        
-        delta_values = individual['delta_values']
-        delta_E1_values = individual['delta_E1_values']
-        delta_E2_values = individual['delta_E2_values']
-        delta_E12_values = joint['delta_E12_values']
-        interference_values = joint['interference_values']
-        
-        # Create figure with subplots
-        fig = plt.figure(figsize=(16, 12))
-        gs = gridspec.GridSpec(3, 2, height_ratios=[2, 2, 1.5], hspace=0.3, wspace=0.25)
-        
-        # Subplot 1: Individual energy perturbations
-        ax1 = fig.add_subplot(gs[0, 0])
-        ax1.plot(delta_values, delta_E1_values, 'o-', color=self.colors['zero1'], 
-                label=f'Zero 1 (γ₁={math_results["gamma1"]:.2f})', markersize=4, linewidth=2)
-        ax1.plot(delta_values, delta_E2_values, 's-', color=self.colors['zero2'], 
-                label=f'Zero 2 (γ₂={math_results["gamma2"]:.2f})', markersize=4, linewidth=2)
-        
-        # Add quadratic fits
-        delta_squared = delta_values**2
-        C1 = stats_results['stability_zero1']['C1']
-        C2 = stats_results['stability_zero2']['C1']
-        fit1 = C1 * delta_squared
-        fit2 = C2 * delta_squared
-        
-        ax1.plot(delta_values, fit1, '--', color=self.colors['zero1'], alpha=0.7, 
-                label=f'Fit: C₁={C1:.2e}δ²')
-        ax1.plot(delta_values, fit2, '--', color=self.colors['zero2'], alpha=0.7, 
-                label=f'Fit: C₂={C2:.2e}δ²')
-        
-        ax1.set_xlabel('Perturbation δ')
-        ax1.set_ylabel('Energy Change ΔE')
-        ax1.set_title('Individual Zero Perturbations')
-        ax1.legend(fontsize=9)
-        ax1.grid(True, alpha=0.3)
-        ax1.axhline(y=0, color='black', linestyle='-', alpha=0.3)
-        ax1.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-        
-        # Subplot 2: Joint vs sum comparison
-        ax2 = fig.add_subplot(gs[0, 1])
-        expected_sum = delta_E1_values + delta_E2_values
-        
-        ax2.plot(delta_values, delta_E12_values, 'o-', color=self.colors['joint'], 
-                label='Joint ΔE₁₂', markersize=4, linewidth=2)
-        ax2.plot(delta_values, expected_sum, 's-', color=self.colors['fit'], 
-                label='Sum ΔE₁ + ΔE₂', markersize=4, linewidth=2, alpha=0.7)
-        
-        # Add joint quadratic fit
-        C12_total = stats_results['stability_joint']['C1']
-        fit12 = C12_total * delta_squared
-        ax2.plot(delta_values, fit12, '--', color=self.colors['joint'], alpha=0.7,
-                label=f'Fit: C₁₂={C12_total:.2e}δ²')
-        
-        ax2.set_xlabel('Perturbation δ')
-        ax2.set_ylabel('Energy Change ΔE')
-        ax2.set_title('Joint Perturbation vs Sum')
-        ax2.legend(fontsize=9)
-        ax2.grid(True, alpha=0.3)
-        ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
-        ax2.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-        
-        # Subplot 3: Interference pattern
-        ax3 = fig.add_subplot(gs[1, :])
-        ax3.plot(delta_values, interference_values, 'o-', color=self.colors['interference'], 
-                label='Interference: ΔE₁₂ - (ΔE₁ + ΔE₂)', markersize=4, linewidth=2)
-        
-        # Add cross-coupling fit if significant
-        cross_coupling = stats_results['cross_coupling_analysis']
-        if cross_coupling['is_significant']:
-            C12_cross = cross_coupling['C12']
-            fit_cross = C12_cross * delta_squared
-            ax3.plot(delta_values, fit_cross, '--', color=self.colors['interference'], alpha=0.7,
-                    label=f'Cross-coupling: C₁₂={C12_cross:.2e}δ²')
-        
-        ax3.set_xlabel('Perturbation δ')
-        ax3.set_ylabel('Interference Energy')
-        ax3.set_title('Two-Zero Interference Pattern')
-        ax3.legend(fontsize=10)
-        ax3.grid(True, alpha=0.3)
-        ax3.axhline(y=0, color='black', linestyle='-', alpha=0.5)
-        ax3.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-        
-        # Subplot 4: Stability summary
-        ax4 = fig.add_subplot(gs[2, 0])
-        
-        # Bar chart of coefficients
-        coefficients = [
-            stats_results['stability_zero1']['C1'],
-            stats_results['stability_zero2']['C1'],
-            stats_results['stability_joint']['C1']
-        ]
-        labels = ['C₁ (Zero 1)', 'C₂ (Zero 2)', 'C₁₂ (Joint)']
-        colors = [self.colors['zero1'], self.colors['zero2'], self.colors['joint']]
-        
-        bars = ax4.bar(labels, coefficients, color=colors, alpha=0.7)
-        ax4.set_ylabel('Stability Coefficient')
-        ax4.set_title('Quadratic Stability Coefficients')
-        ax4.grid(True, alpha=0.3, axis='y')
-        
-        # Add value labels on bars
-        for bar, coeff in zip(bars, coefficients):
-            height = bar.get_height()
-            ax4.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{coeff:.2e}', ha='center', va='bottom', fontsize=8)
-        
-        # Subplot 5: Statistical summary
-        ax5 = fig.add_subplot(gs[2, 1])
-        ax5.axis('off')
-        
-        # Create summary text
-        gamma1 = math_results['gamma1']
-        gamma2 = math_results['gamma2']
-        overall_stable = stats_results['overall_stable']
-        
-        summary_text = f"""Statistical Summary:
-        
-Zero Heights: γ₁ = {gamma1:.2f}, γ₂ = {gamma2:.2f}
-        
-Stability Analysis:
-• Zero 1: R² = {stats_results['stability_zero1']['r_squared']:.4f}
-• Zero 2: R² = {stats_results['stability_zero2']['r_squared']:.4f}  
-• Joint: R² = {stats_results['stability_joint']['r_squared']:.4f}
 
-Overall Stability: {"STABLE" if overall_stable else "UNSTABLE"}
-
-Interference:
-• Max |interference|: {stats_results['interference_analysis']['max_interference']:.2e}
-• Cross-coupling significant: {stats_results['cross_coupling_analysis']['is_significant']}"""
+    def create_summary_plot(self, f, metadata):
+        """Create single summary plot for this configuration"""
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig.suptitle(f'Two-Zero Interaction: γ₁={metadata["gamma1"]:.2f}, γ₂={metadata["gamma2"]:.2f}', fontsize=12)
         
-        ax5.text(0.05, 0.95, summary_text, transform=ax5.transAxes, fontsize=10,
-                verticalalignment='top', fontfamily='monospace',
-                bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.8))
+        # Energy comparison plot
+        schemes = ['scheme_i', 'scheme_ii', 'scheme_both']
+        colors = ['blue', 'green', 'red']
+        labels = ['γ₁ only', 'γ₂ only', 'Both']
         
-        # Main title
-        fig.suptitle(f'Experiment 2: Two-Zero Interaction Analysis\nγ₁={gamma1:.2f}, γ₂={gamma2:.2f}', 
-                    fontsize=16, fontweight='bold')
+        for scheme, color, label in zip(schemes, colors, labels):
+            data = f[scheme]
+            delta = data['delta'][:]
+            delta_E = data['delta_E'][:]
+            axes[0].plot(delta, delta_E, 'o-', color=color, label=label, markersize=3)
         
-        # Save plot
-        plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
-        plt.close()
+        axes[0].set_title('Energy Changes')
+        axes[0].set_xlabel('δ')
+        axes[0].set_ylabel('ΔE')
+        axes[0].legend()
+        axes[0].grid(True, alpha=0.3)
         
-        print(f"✓ Energy perturbation plot saved to: '{save_path}'")
-        return save_path
-    
-    def plot_interference_analysis(self, math_results, stats_results, save_path="experiment2_interference_analysis.png"):
-        """
-        Create detailed interference analysis plot.
-        
-        Args:
-            math_results: Results from experiment2_math
-            stats_results: Results from experiment2_stats  
-            save_path: Path to save the plot
-            
-        Returns:
-            str: Path to saved plot
-        """
-        print("Creating interference analysis visualization...")
-        
-        # Extract data
-        individual = math_results['individual']
-        joint = math_results['joint']
-        interference_analysis = stats_results['interference_analysis']
-        
-        delta_values = individual['delta_values']
-        interference_values = joint['interference_values']
-        
-        # Create figure with subplots
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
-        fig.suptitle('Two-Zero Interference Pattern Analysis', fontsize=16, fontweight='bold')
-        
-        # Plot 1: Interference vs perturbation
-        ax1.plot(delta_values, interference_values, 'o-', color=self.colors['interference'], 
-                markersize=4, linewidth=2, label='Interference')
-        
-        # Add power law fit if successful
-        if interference_analysis['power_law_fit_success']:
-            A = interference_analysis['power_law_amplitude']
-            alpha = interference_analysis['power_law_exponent']
-            delta_abs = np.abs(delta_values)
-            power_fit = A * delta_abs**alpha
-            
-            # Apply sign
-            power_fit_signed = np.where(delta_values >= 0, power_fit, -power_fit)
-            ax1.plot(delta_values, power_fit_signed, '--', color=self.colors['fit'], 
-                    alpha=0.7, label=f'Power law: {A:.2e}|δ|^{alpha:.2f}')
-        
-        ax1.set_xlabel('Perturbation δ')
-        ax1.set_ylabel('Interference Energy')
-        ax1.set_title('Interference vs Perturbation')
-        ax1.legend()
-        ax1.grid(True, alpha=0.3)
-        ax1.axhline(y=0, color='black', linestyle='-', alpha=0.5)
-        ax1.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-        
-        # Plot 2: Absolute interference vs |δ|
-        delta_abs = np.abs(delta_values)
-        interference_abs = np.abs(interference_values)
-        
-        ax2.loglog(delta_abs[delta_abs > 0], interference_abs[delta_abs > 0], 'o', 
-                  color=self.colors['interference'], markersize=4, label='|Interference|')
-        
-        if interference_analysis['power_law_fit_success']:
-            A = interference_analysis['power_law_amplitude']
-            alpha = interference_analysis['power_law_exponent']
-            delta_fit = delta_abs[delta_abs > 0]
-            power_fit_abs = A * delta_fit**alpha
-            ax2.loglog(delta_fit, power_fit_abs, '--', color=self.colors['fit'], 
-                      alpha=0.7, label=f'|I| = {A:.2e}|δ|^{alpha:.2f}')
-        
-        ax2.set_xlabel('|δ|')
-        ax2.set_ylabel('|Interference|')
-        ax2.set_title('Log-Log: Interference Scaling')
-        ax2.legend()
-        ax2.grid(True, alpha=0.3)
-        
-        # Plot 3: Interference distribution histogram
-        ax3.hist(interference_values, bins=15, color=self.colors['interference'], 
-                alpha=0.7, edgecolor='black', linewidth=1)
-        ax3.axvline(x=0, color='black', linestyle='--', alpha=0.7, label='Zero')
-        
-        mean_int = interference_analysis['mean_interference']
-        ax3.axvline(x=mean_int, color='red', linestyle='-', alpha=0.7, 
-                   label=f'Mean: {mean_int:.2e}')
-        
-        ax3.set_xlabel('Interference Energy')
-        ax3.set_ylabel('Frequency')
-        ax3.set_title('Interference Distribution')
-        ax3.legend()
-        ax3.grid(True, alpha=0.3)
-        
-        # Plot 4: Statistical summary
-        ax4.axis('off')
-        
-        # Create summary text
-        stats_text = f"""Interference Statistics:
-
-Mean: {interference_analysis['mean_interference']:.3e}
-Std: {interference_analysis['std_interference']:.3e}
-Max |I|: {interference_analysis['max_interference']:.3e}
-
-Sign Changes: {interference_analysis['sign_changes']}
-Correlation with |δ|: {interference_analysis['correlation_with_delta']:.4f}
-
-Power Law Fit:
-• Amplitude A: {interference_analysis['power_law_amplitude']:.3e}
-• Exponent α: {interference_analysis['power_law_exponent']:.2f} ± {interference_analysis['power_law_exponent_std']:.2f}
-• Success: {interference_analysis['power_law_fit_success']}
-
-Bias Test (vs zero):
-• t-statistic: {interference_analysis['bias_t_statistic']:.3f}
-• p-value: {interference_analysis['bias_p_value']:.3e}"""
-        
-        ax4.text(0.05, 0.95, stats_text, transform=ax4.transAxes, fontsize=10,
-                verticalalignment='top', fontfamily='monospace',
-                bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.8))
+        # Interference plot
+        interference = f['interference_analysis']
+        delta = interference['delta'][:]
+        ratio = interference['interference_ratio'][:]
+        axes[1].plot(delta, ratio, 'mo-', label='Interference', markersize=3)
+        axes[1].axhline(y=0, color='k', linestyle='--', alpha=0.5)
+        axes[1].set_title('Interference Ratio')
+        axes[1].set_xlabel('δ')
+        axes[1].set_ylabel('I(δ)')
+        axes[1].grid(True, alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
-        plt.close()
         
-        print(f"✓ Interference analysis plot saved to: '{save_path}'")
-        return save_path
-    
-    def plot_stability_comparison(self, stats_results, save_path="experiment2_stability_comparison.png"):
-        """
-        Create stability comparison visualization.
+        if self.batch_mode:
+            return fig  # Return figure for batch processing
+        else:
+            # Save individual plot
+            filename = f"experiment2_gamma1_{metadata['gamma1']:.2f}_gamma2_{metadata['gamma2']:.2f}.png"
+            plt.savefig(filename, dpi=150, bbox_inches='tight')
+            plt.close()
+            return filename
         
-        Args:
-            stats_results: Results from experiment2_stats
-            save_path: Path to save the plot
-            
-        Returns:
-            str: Path to saved plot
-        """
-        print("Creating stability comparison visualization...")
+        # Scheme Both
+        scheme_both = f['scheme_both']
+        delta = scheme_both['delta'][:]
+        delta_E = scheme_both['delta_E'][:]
+        coeffs = scheme_both['polyfit_coeffs'][:]
+        r_squared = scheme_both.attrs['r_squared']
         
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
-        fig.suptitle('Quadratic Stability Analysis Comparison', fontsize=16, fontweight='bold')
+        axes[1,0].plot(delta, delta_E, 'mo-', label='Data')
+        fit_curve = coeffs[0] * delta + coeffs[1] * delta**2
+        axes[1,0].plot(delta, fit_curve, 'r-', label=f'Fit: R²={r_squared:.3f}')
+        axes[1,0].set_title('Scheme Both: Shift both zeros')
+        axes[1,0].set_xlabel('δ')
+        axes[1,0].set_ylabel('ΔE')
+        axes[1,0].legend()
+        axes[1,0].grid(True)
         
-        # Extract stability data
-        stab1 = stats_results['stability_zero1']
-        stab2 = stats_results['stability_zero2']
-        stab_joint = stats_results['stability_joint']
+        # Interference analysis
+        interference = f['interference_analysis']
+        delta = interference['delta'][:]
+        int_ratio = interference['interference_ratio'][:]
         
-        # Plot 1: Stability coefficients
-        labels = ['Zero 1', 'Zero 2', 'Joint']
-        coeffs = [stab1['C1'], stab2['C1'], stab_joint['C1']]
-        colors = [self.colors['zero1'], self.colors['zero2'], self.colors['joint']]
-        
-        bars = ax1.bar(labels, coeffs, color=colors, alpha=0.7, edgecolor='black')
-        ax1.set_ylabel('Stability Coefficient C₁')
-        ax1.set_title('Quadratic Stability Coefficients')
-        ax1.grid(True, alpha=0.3, axis='y')
-        
-        # Add value labels
-        for bar, coeff in zip(bars, coeffs):
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{coeff:.2e}', ha='center', va='bottom', fontsize=9)
-        
-        # Plot 2: R-squared values
-        r_squared = [stab1['r_squared'], stab2['r_squared'], stab_joint['r_squared']]
-        
-        bars = ax2.bar(labels, r_squared, color=colors, alpha=0.7, edgecolor='black')
-        ax2.set_ylabel('R² (Goodness of Fit)')
-        ax2.set_title('Quadratic Model Fit Quality')
-        ax2.set_ylim(0, 1)
-        ax2.grid(True, alpha=0.3, axis='y')
-        
-        # Add value labels
-        for bar, r2 in zip(bars, r_squared):
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2., height,
-                    f'{r2:.4f}', ha='center', va='bottom', fontsize=9)
-        
-        # Plot 3: P-values (log scale)
-        p_values = [stab1['p_value'], stab2['p_value'], stab_joint['p_value']]
-        
-        bars = ax3.bar(labels, [-np.log10(max(p, 1e-16)) for p in p_values], 
-                      color=colors, alpha=0.7, edgecolor='black')
-        ax3.set_ylabel('-log₁₀(p-value)')
-        ax3.set_title('Statistical Significance')
-        ax3.axhline(y=-np.log10(0.05), color='red', linestyle='--', alpha=0.7, 
-                   label='p = 0.05 threshold')
-        ax3.legend()
-        ax3.grid(True, alpha=0.3, axis='y')
-        
-        # Plot 4: Summary table
-        ax4.axis('off')
-        
-        # Create comparison table
-        table_data = [
-            ['Metric', 'Zero 1', 'Zero 2', 'Joint'],
-            ['C₁ coefficient', f'{stab1["C1"]:.2e}', f'{stab2["C1"]:.2e}', f'{stab_joint["C1"]:.2e}'],
-            ['R²', f'{stab1["r_squared"]:.4f}', f'{stab2["r_squared"]:.4f}', f'{stab_joint["r_squared"]:.4f}'],
-            ['p-value', f'{stab1["p_value"]:.2e}', f'{stab2["p_value"]:.2e}', f'{stab_joint["p_value"]:.2e}'],
-            ['RMSE', f'{stab1["rmse"]:.2e}', f'{stab2["rmse"]:.2e}', f'{stab_joint["rmse"]:.2e}'],
-            ['Stable?', str(stab1["is_stable"]), str(stab2["is_stable"]), str(stab_joint["is_stable"])]
-        ]
-        
-        # Create table
-        table = ax4.table(cellText=table_data, cellLoc='center', loc='center',
-                         bbox=[0, 0, 1, 1])
-        table.auto_set_font_size(False)
-        table.set_fontsize(10)
-        table.scale(1, 2)
-        
-        # Style header row
-        for i in range(4):
-            table[(0, i)].set_facecolor('#40466e')
-            table[(0, i)].set_text_props(weight='bold', color='white')
-        
-        # Color code stability results
-        for i in range(1, 4):
-            stable = table_data[5][i] == 'True'
-            color = 'lightgreen' if stable else 'lightcoral'
-            table[(5, i)].set_facecolor(color)
-        
-        ax4.set_title('Stability Analysis Summary', fontsize=12, fontweight='bold', pad=20)
+        axes[1,1].plot(delta, int_ratio, 'co-', label='Interference ratio')
+        axes[1,1].axhline(y=0, color='k', linestyle='--', alpha=0.5)
+        axes[1,1].set_title('Interference Analysis')
+        axes[1,1].set_xlabel('δ')
+        axes[1,1].set_ylabel('I(δ)')
+        axes[1,1].legend()
+        axes[1,1].grid(True)
         
         plt.tight_layout()
-        plt.savefig(save_path, dpi=self.dpi, bbox_inches='tight')
-        plt.close()
-        
-        print(f"✓ Stability comparison plot saved to: '{save_path}'")
-        return save_path
-    
-    def create_all_visualizations(self, math_results, stats_results, output_dir="experiment2"):
-        """
-        Create all visualization plots for the experiment.
-        
-        Args:
-            math_results: Results from experiment2_math
-            stats_results: Results from experiment2_stats
-            output_dir: Directory to save plots
-            
-        Returns:
-            list: List of saved plot paths
-        """
-        print("Creating all visualizations for Experiment 2...")
-        
-        start_time = time.time()
-        saved_plots = []
-        
-        # Ensure output directory exists
-        import os
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Create all plots
-        plot1 = self.plot_energy_perturbations(
-            math_results, stats_results, 
-            f"{output_dir}/experiment2_energy_perturbations.png"
-        )
-        saved_plots.append(plot1)
-        
-        plot2 = self.plot_interference_analysis(
-            math_results, stats_results,
-            f"{output_dir}/experiment2_interference_analysis.png"
-        )
-        saved_plots.append(plot2)
-        
-        plot3 = self.plot_stability_comparison(
-            stats_results,
-            f"{output_dir}/experiment2_stability_comparison.png"
-        )
-        saved_plots.append(plot3)
-        
-        total_time = time.time() - start_time
-        
-        print(f"✓ All visualizations completed in {total_time:.2f} seconds")
-        print(f"✓ Saved {len(saved_plots)} plots to '{output_dir}/'")
-        
-        return saved_plots
+        return fig
 
-# Factory function
-def create_experiment2_viz(style='seaborn-v0_8', figsize_default=(12, 8), dpi=300):
-    """Create Experiment2Viz instance."""
-    return Experiment2Viz(style=style, figsize_default=figsize_default, dpi=dpi)
+    def plot_stability_summary(self, f, metadata):
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+        
+        schemes = ['scheme_i', 'scheme_ii', 'scheme_both']
+        labels = ['Scheme I (γ₁)', 'Scheme II (γ₂)', 'Scheme Both']
+        colors = ['blue', 'green', 'magenta']
+        
+        c1_values = []
+        c2_values = []
+        stabilities = []
+        
+        for scheme_name in schemes:
+            scheme = f[scheme_name]
+            coeffs = scheme['polyfit_coeffs'][:]
+            c1_values.append(coeffs[0])
+            c2_values.append(-coeffs[1])  # Convert back from stored -C2
+            stabilities.append(scheme.attrs['stability'])
+        
+        x_pos = np.arange(len(schemes))
+        
+        bars1 = ax.bar(x_pos - 0.2, c1_values, 0.4, label='C₁ coefficient', color=colors, alpha=0.7)
+        bars2 = ax.bar(x_pos + 0.2, c2_values, 0.4, label='C₂ coefficient', color=colors, alpha=0.3)
+        
+        ax.set_xlabel('Perturbation Scheme')
+        ax.set_ylabel('Coefficient Value')
+        ax.set_title(f'Stability Coefficients\nγ₁={metadata["gamma1"]:.2f}, γ₂={metadata["gamma2"]:.2f}')
+        ax.set_xticks(x_pos)
+        ax.set_xticklabels(labels)
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        ax.axhline(y=0, color='k', linestyle='-', alpha=0.5)
+        
+        # Add stability annotations
+        for i, stability in enumerate(stabilities):
+            color = 'green' if stability == 'stable' else 'red'
+            ax.text(i, max(max(c1_values), max(c2_values)) * 0.8, stability.upper(), 
+                   ha='center', va='bottom', color=color, fontweight='bold')
+        
+        plt.tight_layout()
+        return fig
+
+    def create_plots(self):
+        with h5py.File(self.hdf5_file, 'r') as f:
+            metadata = self.load_metadata(f)
+            
+            # Main energy curves plot
+            fig1 = self.plot_energy_curves(f, metadata)
+            plot1_name = self.hdf5_file.replace('.h5', '_energy_curves.png')
+            fig1.savefig(plot1_name, dpi=300, bbox_inches='tight')
+            plt.close(fig1)
+            
+def run_experiment2_viz(hdf5_file="experiment2_two_zero_interaction.h5"):
+    """Minimal viz - just validate data, no individual plots"""
+    with h5py.File(hdf5_file, 'r') as f:
+        meta = f['metadata']
+        gamma1, gamma2 = meta.attrs['gamma_1'], meta.attrs['gamma_2']
+        
+        # Just verify statistical data is present
+        schemes = ['scheme_i', 'scheme_ii', 'scheme_both']
+        stats_present = all(
+            'polyfit_coeffs' in f[scheme] and 'r_squared' in f[scheme].attrs 
+            for scheme in schemes
+        )
+        
+        print(f"✓ Data validated for γ₁={gamma1:.2f}, γ₂={gamma2:.2f}")
+        print(f"  Statistical data: {'Present' if stats_present else 'Missing'}")
+        
+        return f"experiment2_gamma1_{gamma1:.2f}_gamma2_{gamma2:.2f}_validated"
+
+def create_statistical_summary(hdf5_files):
+    """Create comprehensive statistical summary plots for batch analysis"""
+    fig, axes = plt.subplots(3, 3, figsize=(18, 15))
+    fig.suptitle('Experiment 2: Complete Statistical Analysis', fontsize=16)
+    
+    # Collect statistical data
+    gamma_pairs = []
+    c1_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+    c1_errors = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+    r_squared = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+    p_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+    interference_stats = []
+    cross_coupling_coeffs = []
+    
+    for hdf5_file in hdf5_files:
+        with h5py.File(hdf5_file, 'r') as f:
+            meta = f['metadata']
+            gamma1, gamma2 = float(meta.attrs['gamma_1']), float(meta.attrs['gamma_2'])
+            gamma_pairs.append((gamma1, gamma2))
+            
+            for scheme in ['scheme_i', 'scheme_ii', 'scheme_both']:
+                data = f[scheme]
+                coeffs = data['polyfit_coeffs'][:]
+                c1_values[scheme].append(float(coeffs[0]))
+                c1_errors[scheme].append(float(data.attrs.get('c1_std_error', 0)))
+                r_squared[scheme].append(float(data.attrs.get('r_squared', 0)))
+                p_values[scheme].append(float(data.attrs.get('c1_p_value', 1)))
+            
+            # Interference analysis data
+            interference = f['interference_analysis']
+            max_interference = float(np.max(np.abs(interference['interference_ratio'][:])))
+            mean_interference = float(np.mean(np.abs(interference['interference_ratio'][:])))
+            interference_p_value = float(interference.attrs.get('interference_p_value', 1))
+            interference_stats.append((max_interference, mean_interference, interference_p_value))
+            
+            # Cross-coupling coefficient
+            cross_coupling = float(f['interference_analysis'].attrs.get('cross_coupling_coeff', 0))
+            cross_coupling_coeffs.append(cross_coupling)
+    
+    colors = ['blue', 'green', 'red']
+    labels = ['γ₁ only', 'γ₂ only', 'Both']
+    x = range(len(gamma_pairs))
+    
+    # Row 1: Stability Analysis
+    # Plot 1: C₁ coefficients with error bars
+    for i, (scheme, color, label) in enumerate(zip(['scheme_i', 'scheme_ii', 'scheme_both'], colors, labels)):
+        axes[0,0].errorbar([xi + i*0.25 for xi in x], c1_values[scheme], 
+                          yerr=c1_errors[scheme], fmt='o', color=color, label=label, markersize=4)
+    
+    axes[0,0].set_title('C₁ Coefficients (Stability)')
+    axes[0,0].set_xlabel('Configuration')
+    axes[0,0].set_ylabel('C₁')
+    axes[0,0].legend()
+    axes[0,0].grid(True, alpha=0.3)
+    axes[0,0].axhline(y=0, color='k', linestyle='--', alpha=0.5)
+    
+    # Plot 2: P-values for C₁ > 0
+    for i, (scheme, color, label) in enumerate(zip(['scheme_i', 'scheme_ii', 'scheme_both'], colors, labels)):
+        axes[0,1].scatter([xi + i*0.25 for xi in x], p_values[scheme], 
+                         c=color, label=label, s=30, alpha=0.7)
+    
+    axes[0,1].set_title('P-values for C₁ > 0')
+    axes[0,1].set_xlabel('Configuration')
+    axes[0,1].set_ylabel('P-value')
+    axes[0,1].set_yscale('log')
+    axes[0,1].axhline(y=0.05, color='red', linestyle='--', alpha=0.5, label='α=0.05')
+    axes[0,1].legend()
+    axes[0,1].grid(True, alpha=0.3)
+    
+    # Plot 3: R² values
+    for i, (scheme, color, label) in enumerate(zip(['scheme_i', 'scheme_ii', 'scheme_both'], colors, labels)):
+        axes[0,2].scatter([xi + i*0.25 for xi in x], r_squared[scheme], 
+                         c=color, label=label, s=30, alpha=0.7)
+    
+    axes[0,2].set_title('Fit Quality (R²)')
+    axes[0,2].set_xlabel('Configuration')
+    axes[0,2].set_ylabel('R²')
+    axes[0,2].axhline(y=0.95, color='green', linestyle='--', alpha=0.5, label='Good fit')
+    axes[0,2].legend()
+    axes[0,2].grid(True, alpha=0.3)
+    
+    # Row 2: Interference Analysis
+    # Plot 4: Maximum interference ratios
+    max_interf = [stats[0] for stats in interference_stats]
+    axes[1,0].bar(x, max_interf, alpha=0.7, color='purple')
+    axes[1,0].set_title('Maximum Interference |I(δ)|')
+    axes[1,0].set_xlabel('Configuration')
+    axes[1,0].set_ylabel('Max |I(δ)|')
+    axes[1,0].grid(True, alpha=0.3)
+    
+    # Plot 5: Interference P-values
+    interf_p_vals = [stats[2] for stats in interference_stats]
+    axes[1,1].scatter(x, interf_p_vals, c='purple', s=50, alpha=0.7)
+    axes[1,1].set_title('Interference Significance')
+    axes[1,1].set_xlabel('Configuration')
+    axes[1,1].set_ylabel('P-value for I(δ)=0')
+    axes[1,1].set_yscale('log')
+    axes[1,1].axhline(y=0.05, color='red', linestyle='--', alpha=0.5, label='α=0.05')
+    axes[1,1].legend()
+    axes[1,1].grid(True, alpha=0.3)
+    
+    # Plot 6: Cross-coupling coefficients
+    axes[1,2].bar(x, cross_coupling_coeffs, alpha=0.7, color='orange')
+    axes[1,2].set_title('Cross-Coupling C₁₂')
+    axes[1,2].set_xlabel('Configuration')
+    axes[1,2].set_ylabel('C₁₂')
+    axes[1,2].axhline(y=0, color='k', linestyle='-', alpha=0.5)
+    axes[1,2].grid(True, alpha=0.3)
+    
+    # Row 3: Summary Analysis
+    # Plot 7: Overall stability
+    stable_count = sum(1 for scheme in ['scheme_i', 'scheme_ii', 'scheme_both'] 
+                      for c1 in c1_values[scheme] if c1 > 0)
+    total_count = len(hdf5_files) * 3
+    
+    axes[2,0].bar(['Stable', 'Unstable'], 
+                  [stable_count, total_count - stable_count],
+                  color=['green', 'red'], alpha=0.7)
+    axes[2,0].set_title(f'Overall Stability: {stable_count}/{total_count} ({float(100*stable_count/total_count):.1f}%)')
+    axes[2,0].set_ylabel('Count')
+    
+    # Plot 8: Interference vs Stability
+    stable_markers = [c1_values['scheme_both'][i] > 0 for i in range(len(gamma_pairs))]
+    stable_interf = [max_interf[i] for i in range(len(max_interf)) if stable_markers[i]]
+    unstable_interf = [max_interf[i] for i in range(len(max_interf)) if not stable_markers[i]]
+    
+    if stable_interf:
+        axes[2,1].hist(stable_interf, bins=10, alpha=0.7, color='green', label='Stable')
+    if unstable_interf:
+        axes[2,1].hist(unstable_interf, bins=10, alpha=0.7, color='red', label='Unstable')
+    
+    axes[2,1].set_title('Interference Distribution')
+    axes[2,1].set_xlabel('Max |I(δ)|')
+    axes[2,1].set_ylabel('Count')
+    axes[2,1].legend()
+    axes[2,1].grid(True, alpha=0.3)
+    
+    # Plot 9: Parameter space coverage
+    g1_vals = [g[0] for g in gamma_pairs]
+    g2_vals = [g[1] for g in gamma_pairs]
+    scatter = axes[2,2].scatter(g1_vals, g2_vals, c=max_interf, s=100, alpha=0.7, cmap='viridis')
+    axes[2,2].set_title('Zero Pair Coverage')
+    axes[2,2].set_xlabel('γ₁')
+    axes[2,2].set_ylabel('γ₂')
+    axes[2,2].grid(True, alpha=0.3)
+    plt.colorbar(scatter, ax=axes[2,2], label='Max |I(δ)|')
+    
+    plt.tight_layout()
+    filename = "experiment2_statistical_summary.png"
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    # Summary statistics
+    significant_interference = sum(1 for stats in interference_stats if stats[2] < 0.05)
+    mean_max_interference = float(np.mean([stats[0] for stats in interference_stats]))
+    
+    print(f"✓ Complete statistical summary: {filename}")
+    print(f"  Analyzed {len(hdf5_files)} configurations")
+    print(f"  Overall stability: {float(100*stable_count/total_count):.1f}%")
+    print(f"  Significant interference: {significant_interference}/{len(hdf5_files)} configurations")
+    print(f"  Mean max interference: {mean_max_interference:.2e}")
+    
+    return filename
