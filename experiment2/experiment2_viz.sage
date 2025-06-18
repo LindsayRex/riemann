@@ -358,6 +358,9 @@ def create_focused_dataset_summaries(hdf5_file):
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # Professional color scheme
         labels = ['γ₁ only', 'γ₂ only', 'Both zeros']
         
+        # Create readable configuration labels
+        config_labels = [f'({g[0]:.1f},{g[1]:.1f})' for g in gamma_pairs]
+        
         stable_count = sum(1 for scheme in ['scheme_i', 'scheme_ii', 'scheme_both'] 
                           for c1 in c1_values[scheme] if c1 > 0)
         total_count = len(config_groups) * 3
@@ -390,11 +393,14 @@ def create_focused_dataset_summaries(hdf5_file):
                         label=label, markersize=8, capsize=5, capthick=2, alpha=0.8, linewidth=2)
         
         ax1.set_title('C₁ Coefficients with Bootstrap 95% CIs', fontsize=16, fontweight='bold')
-        ax1.set_xlabel('Configuration Index', fontsize=14)
+        ax1.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax1.set_ylabel('C₁ Value', fontsize=14)
         ax1.legend(fontsize=14)
         ax1.grid(True, alpha=0.3)
         ax1.axhline(y=0, color='k', linestyle='--', alpha=0.6, linewidth=2)
+        # Add configuration labels on x-axis
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         
         # Plot 2: P-values with significance testing  
         for i, (scheme, color, label) in enumerate(zip(['scheme_i', 'scheme_ii', 'scheme_both'], colors, labels)):
@@ -403,9 +409,13 @@ def create_focused_dataset_summaries(hdf5_file):
                        c=color, label=label, s=80, alpha=0.8, edgecolors='black', linewidth=0.5)
         
         ax2.set_title('P-values for C₁ > 0 (Log Scale)', fontsize=16, fontweight='bold')
-        ax2.set_xlabel('Configuration Index', fontsize=14)
+        ax2.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax2.set_ylabel('P-value', fontsize=14)
+        # Add configuration labels on x-axis
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         ax2.set_yscale('log')
+        ax2.set_yticks([1e-16, 1e-10, 1e-5, 1e-3, 1e-2, 1e-1, 1e0])
         ax2.axhline(y=0.05, color='red', linestyle='--', alpha=0.8, linewidth=3, label='α=0.05')
         ax2.axhline(y=0.01, color='darkred', linestyle='--', alpha=0.8, linewidth=3, label='α=0.01')
         ax2.legend(fontsize=12)
@@ -422,7 +432,7 @@ def create_focused_dataset_summaries(hdf5_file):
                 bbox=dict(boxstyle="round,pad=0.8", facecolor="lightblue", alpha=0.8))
         
         plt.tight_layout()
-        plt.subplots_adjust(top=0.85, bottom=0.2)  # More space for title and bottom text
+        plt.subplots_adjust(top=0.85, bottom=0.25)  # More space for title and bottom text
         filename1 = "results/experiment2_summary_1_stability.png"
         plt.savefig(filename1, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -447,17 +457,21 @@ def create_focused_dataset_summaries(hdf5_file):
         ax1.grid(True, alpha=0.3)
         ax1.set_ylim([0.9, 1.001])
         
-        # Plot 2: Distribution of R² values
+        # Plot 2: Distribution of R² values with better explanation
         all_r2 = []
         for scheme in ['scheme_i', 'scheme_ii', 'scheme_both']:
             all_r2.extend(r_squared[scheme])
         
-        ax2.hist(all_r2, bins=20, alpha=0.7, color='green', edgecolor='black', linewidth=1)
-        ax2.axvline(x=np.mean(all_r2), color='red', linestyle='-', linewidth=3, label=f'Mean: {np.mean(all_r2):.4f}')
-        ax2.axvline(x=0.99, color='orange', linestyle='--', linewidth=2, label='Excellent threshold')
-        ax2.set_title('R² Distribution (All Schemes)', fontsize=16, fontweight='bold')
-        ax2.set_xlabel('R² Value', fontsize=14)
-        ax2.set_ylabel('Frequency', fontsize=14)
+        counts, bins, patches = ax2.hist(all_r2, bins=20, alpha=0.7, color='lightblue', 
+                                        edgecolor='black', linewidth=1, 
+                                        label=f'All fits (n={len(all_r2)})')
+        ax2.axvline(x=np.mean(all_r2), color='red', linestyle='-', linewidth=3, 
+                   label=f'Mean R²: {np.mean(all_r2):.4f}')
+        ax2.axvline(x=0.99, color='orange', linestyle='--', linewidth=2, 
+                   label='Excellent threshold (0.99)')
+        ax2.set_title('Distribution of Parabolic Fit Quality', fontsize=16, fontweight='bold')
+        ax2.set_xlabel('R² Value (Coefficient of Determination)', fontsize=14)
+        ax2.set_ylabel('Number of Configurations', fontsize=14)
         ax2.legend(fontsize=12)
         ax2.grid(True, alpha=0.3)
         
@@ -472,7 +486,7 @@ def create_focused_dataset_summaries(hdf5_file):
                 bbox=dict(boxstyle="round,pad=0.8", facecolor="lightgreen", alpha=0.8))
         
         plt.tight_layout()
-        plt.subplots_adjust(top=0.85, bottom=0.2)
+        plt.subplots_adjust(top=0.85, bottom=0.25)
         filename2 = "results/experiment2_summary_2_fit_quality.png"
         plt.savefig(filename2, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -493,9 +507,12 @@ def create_focused_dataset_summaries(hdf5_file):
                              edgecolors='black', linewidth=0.5)
         
         ax1.set_title('Maximum |I(δ)| by Statistical Significance', fontsize=16, fontweight='bold')
-        ax1.set_xlabel('Configuration Index', fontsize=14)
+        ax1.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax1.set_ylabel('Max |I(δ)|', fontsize=14)
         ax1.grid(True, alpha=0.3)
+        # Add configuration labels on x-axis
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         
         # Add legend for significance
         from matplotlib.patches import Patch
@@ -508,9 +525,13 @@ def create_focused_dataset_summaries(hdf5_file):
         ax2.scatter(x, interf_p_vals_safe, c='purple', s=100, alpha=0.8, 
                    edgecolors='black', linewidth=0.5)
         ax2.set_title('Interference P-values (H₀: I(δ)=0)', fontsize=16, fontweight='bold')
-        ax2.set_xlabel('Configuration Index', fontsize=14)
+        ax2.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax2.set_ylabel('P-value', fontsize=14)
         ax2.set_yscale('log')
+        ax2.set_yticks([1e-16, 1e-10, 1e-5, 1e-3, 1e-2, 1e-1, 1e0])
+        # Add configuration labels on x-axis
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         ax2.axhline(y=0.05, color='red', linestyle='--', alpha=0.8, linewidth=3, label='α=0.05')
         ax2.legend(fontsize=12)
         ax2.grid(True, alpha=0.3)
@@ -526,7 +547,7 @@ def create_focused_dataset_summaries(hdf5_file):
                 bbox=dict(boxstyle="round,pad=0.8", facecolor="lightcoral", alpha=0.8))
         
         plt.tight_layout()
-        plt.subplots_adjust(top=0.85, bottom=0.2)
+        plt.subplots_adjust(top=0.85, bottom=0.25)
         filename3 = "results/experiment2_summary_3_interference.png"
         plt.savefig(filename3, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -545,10 +566,13 @@ def create_focused_dataset_summaries(hdf5_file):
                     fmt='o', color='orange', markersize=10, capsize=5, capthick=2, 
                     alpha=0.8, linewidth=2, elinewidth=2)
         ax1.set_title('Cross-Coupling C₁₂ with Standard Errors', fontsize=16, fontweight='bold')
-        ax1.set_xlabel('Configuration Index', fontsize=14)
-        ax1.set_ylabel('C₁₂', fontsize=14)
+        ax1.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
+        ax1.set_ylabel('C₁₂ (Cross-coupling coefficient)', fontsize=14)
         ax1.axhline(y=0, color='k', linestyle='-', alpha=0.6, linewidth=2)
         ax1.grid(True, alpha=0.3)
+        # Add configuration labels on x-axis
+        ax1.set_xticks(x)
+        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         
         # Plot 2: Additivity test results
         additivity_p_vals = [res[1] for res in additivity_results]
@@ -557,10 +581,13 @@ def create_focused_dataset_summaries(hdf5_file):
         ax2.scatter(x, additivity_diffs, c=additivity_colors, s=100, alpha=0.8, 
                    edgecolors='black', linewidth=0.5)
         ax2.set_title('Additivity Test: C₁⁽¹²⁾ - (C₁¹ + C₁²)', fontsize=16, fontweight='bold')
-        ax2.set_xlabel('Configuration Index', fontsize=14)
-        ax2.set_ylabel('Difference', fontsize=14)
+        ax2.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
+        ax2.set_ylabel('Additivity Difference', fontsize=14)
         ax2.axhline(y=0, color='k', linestyle='-', alpha=0.6, linewidth=2)
         ax2.grid(True, alpha=0.3)
+        # Add configuration labels on x-axis
+        ax2.set_xticks(x)
+        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
         
         # Add legend
         legend_elements = [Patch(facecolor='red', label=f'Non-additive (p < 0.05, n={sum(1 for p in additivity_p_vals if p < 0.05)})'),
@@ -578,7 +605,7 @@ def create_focused_dataset_summaries(hdf5_file):
                 bbox=dict(boxstyle="round,pad=0.8", facecolor="lightyellow", alpha=0.8))
         
         plt.tight_layout()
-        plt.subplots_adjust(top=0.85, bottom=0.2)
+        plt.subplots_adjust(top=0.85, bottom=0.25)
         filename4 = "results/experiment2_summary_4_cross_coupling.png"
         plt.savefig(filename4, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -589,35 +616,39 @@ def create_focused_dataset_summaries(hdf5_file):
         fig.suptitle(f'Image 5/5: Parameter Space Coverage and Dataset Summary', 
                      fontsize=18, fontweight='bold', y=0.92)
         
-        # Plot 1: Parameter space coverage with interference coloring
+        # Plot 1: Parameter space coverage with better explanation  
         g1_vals = [g[0] for g in gamma_pairs]
         g2_vals = [g[1] for g in gamma_pairs]
         scatter = ax1.scatter(g1_vals, g2_vals, c=max_interf, s=150, alpha=0.8, 
-                             cmap='viridis', edgecolors='black', linewidth=0.5)
-        ax1.set_title('Zero-Pair Parameter Space Coverage', fontsize=16, fontweight='bold')
-        ax1.set_xlabel('γ₁ (First Zero)', fontsize=14)
-        ax1.set_ylabel('γ₂ (Second Zero)', fontsize=14)
+                             cmap='plasma', edgecolors='black', linewidth=0.5)
+        ax1.set_title('Zero-Pair Parameter Space: Interference by Location', fontsize=16, fontweight='bold')
+        ax1.set_xlabel('γ₁ (First Zero Position)', fontsize=14)
+        ax1.set_ylabel('γ₂ (Second Zero Position)', fontsize=14)
         ax1.grid(True, alpha=0.3)
         cbar = plt.colorbar(scatter, ax=ax1)
-        cbar.set_label('Max |I(δ)|', fontsize=14)
+        cbar.set_label('Max |I(δ)| (Interference Magnitude)', fontsize=12)
         
-        # Plot 2: Overall summary statistics
-        categories = ['Stable\nCoefficients\n(C₁ > 0)', 'Significant\nInterference\n(p < 0.05)', 'Non-Additive\nConfigs\n(p < 0.05)']
+        # Plot 2: Summary with actual counts and better labels
+        count_labels = [f'Stable Coefficients\n({stable_count}/{total_count} cases)', 
+                       f'Significant Interference\n({significant_interference}/{len(config_groups)} configs)', 
+                       f'Non-Additive Behavior\n({significant_additivity}/{len(config_groups)} configs)']
         values = [float(stable_count/total_count*100), float(significant_interference/len(config_groups)*100), 
                  float(significant_additivity/len(config_groups)*100)]
         colors_bars = ['green', 'red', 'orange']
         
-        bars = ax2.bar(categories, values, color=colors_bars, alpha=0.8, edgecolor='black', linewidth=1)
-        ax2.set_title('Dataset Summary Statistics (%)', fontsize=16, fontweight='bold')
+        bars = ax2.bar(count_labels, values, color=colors_bars, alpha=0.8, edgecolor='black', linewidth=1)
+        ax2.set_title(f'Dataset Summary: {len(config_groups)} Configurations Analyzed', fontsize=16, fontweight='bold')
         ax2.set_ylabel('Percentage', fontsize=14)
-        ax2.set_ylim([0, 100])
+        ax2.set_ylim([0, 105])
         ax2.grid(True, alpha=0.3, axis='y')
         
-        # Add value labels on bars
-        for bar, value in zip(bars, values):
+        # Add both percentage and count labels on bars
+        for bar, value, count in zip(bars, values, [f'{stable_count}/{total_count}', 
+                                                   f'{significant_interference}/{len(config_groups)}', 
+                                                   f'{significant_additivity}/{len(config_groups)}']):
             height = bar.get_height()
             ax2.text(bar.get_x() + bar.get_width()/2., height + 1,
-                    f'{value:.1f}%', ha='center', va='bottom', fontweight='bold', fontsize=12)
+                    f'{value:.1f}%\n({count})', ha='center', va='bottom', fontweight='bold', fontsize=11)
         
         # Context summary
         min_gamma1 = float(min(g[0] for g in gamma_pairs))
@@ -635,7 +666,7 @@ def create_focused_dataset_summaries(hdf5_file):
                 bbox=dict(boxstyle="round,pad=0.8", facecolor="lightgray", alpha=0.8))
         
         plt.tight_layout()
-        plt.subplots_adjust(top=0.85, bottom=0.2)
+        plt.subplots_adjust(top=0.85, bottom=0.25)
         filename5 = "results/experiment2_summary_5_parameter_space.png"
         plt.savefig(filename5, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -705,6 +736,9 @@ def create_focused_dataset_summaries(hdf5_file):
         x = range(len(gamma_pairs))
         colors = ['#1f77b4', '#ff7f0e', '#2ca02c']  # Professional color scheme
         labels = ['γ₁ only', 'γ₂ only', 'Both zeros']
+        
+        # Create readable configuration labels
+        config_labels = [f'({g[0]:.1f},{g[1]:.1f})' for g in gamma_pairs]
         
         # Row 1: Enhanced Stability Analysis with Error Bars
         # Plot 1: C₁ coefficients with bootstrap confidence intervals
