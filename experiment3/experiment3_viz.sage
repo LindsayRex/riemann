@@ -127,7 +127,7 @@ class Experiment3Viz:
         ax2.legend(fontsize=10)
         ax2.grid(True, alpha=0.3)
         
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.92])
         filename = "results/experiment3_summary_1_energy_curves.png"
         fig.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
@@ -186,7 +186,7 @@ class Experiment3Viz:
         ax2.legend(fontsize=12)
         ax2.grid(True, alpha=0.3)
         
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.92])
         filename = "results/experiment3_summary_2_scaling_law.png"
         fig.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
@@ -249,7 +249,7 @@ class Experiment3Viz:
         lines2, labels2 = ax2_twin.get_legend_handles_labels()
         ax2.legend(lines1 + lines2, labels1 + labels2, loc='upper left', fontsize=10)
         
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.92])
         filename = "results/experiment3_summary_3_random_perturbation.png"
         fig.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
@@ -330,7 +330,7 @@ class Experiment3Viz:
                         xytext=(0, 3), textcoords="offset points", ha='center', va='bottom',
                         fontsize=10)
         
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.92])
         filename = "results/experiment3_summary_4_comparison.png"
         fig.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
@@ -356,7 +356,7 @@ class Experiment3Viz:
         stable_count = sum(1 for c1 in c1_values if c1 > 0)
         mean_c1 = np.mean(c1_values)
         std_c1 = np.std(c1_values)
-        ax1.text(0.05, 0.95, f'Stable: {stable_count}/{len(c1_values)} ({100*stable_count/len(c1_values):.1f}%)\n'
+        ax1.text(0.05, 0.95, f'Stable: {stable_count}/{len(c1_values)} ({float(100*stable_count/len(c1_values)):.1f}%)\n'
                              f'Mean: {mean_c1:.2e}\nStd: {std_c1:.2e}',
                 transform=ax1.transAxes, fontsize=11, verticalalignment='top',
                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
@@ -405,7 +405,7 @@ class Experiment3Viz:
             mean_r2 = np.mean([d['r_squared'] for d in uniform_data])
             
             stats_text += f"• Total Configurations: {total_configs}\n"
-            stats_text += f"• Stable (C₁ > 0): {stable_configs} ({100*stable_configs/total_configs:.1f}%)\n"
+            stats_text += f"• Stable (C₁ > 0): {stable_configs} ({float(100*stable_configs/total_configs):.1f}%)\n"
             stats_text += f"• Mean Fit Quality: R² = {mean_r2:.6f}\n\n"
         
         if scaling_data:
@@ -432,7 +432,7 @@ class Experiment3Viz:
                 verticalalignment='top', fontfamily='monospace',
                 bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.3))
         
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.92])
         filename = "results/experiment3_summary_5_statistical_dashboard.png"
         fig.savefig(filename, dpi=300, bbox_inches='tight')
         plt.close(fig)
