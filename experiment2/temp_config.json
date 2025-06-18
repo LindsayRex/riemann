@@ -1,0 +1,10 @@
+{
+  "gamma1": 43.32,
+  "gamma2": 48.0,
+  "delta_range": 0.05,
+  "delta_steps": 41,
+  "test_function_type": "gaussian",
+  "num_test_functions": 20,
+  "output_file": "data/experiment2_complete_analysis.h5",
+  "group_name": "config_22_gamma1_43.32_gamma2_48.0"
+}
