@@ -398,9 +398,12 @@ def create_focused_dataset_summaries(hdf5_file):
         ax1.legend(fontsize=14)
         ax1.grid(True, alpha=0.3)
         ax1.axhline(y=0, color='k', linestyle='--', alpha=0.6, linewidth=2)
-        # Add configuration labels on x-axis
-        ax1.set_xticks(x)
-        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        
+        # Add configuration labels on x-axis (show every 10th for readability)
+        step = max(1, len(config_labels) // 10)  # Show ~10 labels max
+        ax1.set_xticks(x[::step])
+        ax1.set_xticklabels([config_labels[i] for i in range(0, len(config_labels), step)], 
+                           rotation=45, ha='right', fontsize=10)
         
         # Plot 2: P-values with significance testing  
         for i, (scheme, color, label) in enumerate(zip(['scheme_i', 'scheme_ii', 'scheme_both'], colors, labels)):
@@ -411,9 +414,10 @@ def create_focused_dataset_summaries(hdf5_file):
         ax2.set_title('P-values for C₁ > 0 (Log Scale)', fontsize=16, fontweight='bold')
         ax2.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax2.set_ylabel('P-value', fontsize=14)
-        # Add configuration labels on x-axis
-        ax2.set_xticks(x)
-        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        # Add configuration labels on x-axis (show every 10th for readability)  
+        ax2.set_xticks(x[::step])
+        ax2.set_xticklabels([config_labels[i] for i in range(0, len(config_labels), step)], 
+                           rotation=45, ha='right', fontsize=10)
         ax2.set_yscale('log')
         ax2.set_yticks([1e-16, 1e-10, 1e-5, 1e-3, 1e-2, 1e-1, 1e0])
         ax2.axhline(y=0.05, color='red', linestyle='--', alpha=0.8, linewidth=3, label='α=0.05')
