@@ -1,0 +1,19 @@
+{
+    "gamma": 14.134725141734693,
+    "delta_range": 0.05,
+    "delta_steps": 51,
+    "num_test_functions": 35,
+    "test_function_type": "gaussian",
+    "confidence_level": 0.95,
+    "bootstrap_samples": 25000,
+    "output_prefix": "experiment1_high_precision",
+    "verbose": true,
+    "comments": {
+        "gamma": "First zero with high precision (14.134725141734693)",
+        "delta_range": "Smaller range for ultra-local analysis",
+        "delta_steps": "High resolution in the critical region",
+        "num_test_functions": "Maximum precision setup",
+        "bootstrap_samples": "Maximum bootstrap samples for publication-quality statistics",
+        "purpose": "Ultra-high precision analysis to detect any subtle deviations from quadratic behavior"
+    }
+}

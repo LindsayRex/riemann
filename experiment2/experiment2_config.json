@@ -1,0 +1,12 @@
+{
+    "gamma1": 14.13,
+    "gamma2": 21.02,
+    "delta_range": 0.05,
+    "delta_steps": 21,
+    "num_test_functions": 15,
+    "test_function_type": "gaussian",
+    "output_dir": "experiment2",
+    "export_csv": true,
+    "create_plots": true,
+    "create_report": true
+}

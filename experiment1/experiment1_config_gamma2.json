@@ -1,0 +1,19 @@
+{
+    "gamma": 21.022039638771554,
+    "delta_range": 0.12,
+    "delta_steps": 49,
+    "num_test_functions": 25,
+    "test_function_type": "gaussian",
+    "confidence_level": 0.95,
+    "bootstrap_samples": 15000,
+    "output_prefix": "experiment1_gamma2",
+    "verbose": true,
+    "comments": {
+        "gamma": "Second nontrivial Riemann zeta zero height (21.022...)",
+        "delta_range": "Slightly larger range to test stability at different scales",
+        "delta_steps": "More data points for better curve fitting",
+        "num_test_functions": "More test functions for higher precision",
+        "bootstrap_samples": "More bootstrap samples for robust confidence intervals",
+        "purpose": "Test if C₁ > 0 result holds for different zero heights"
+    }
+}

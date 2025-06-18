@@ -1,0 +1,64 @@
+# SageMath and Python files
+*.sage.py
+*.pyc
+__pycache__/
+*.so
+*.egg-info/
+build/
+dist/
+
+# Jupyter Notebook files
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data files (large)
+*.h5
+*.hdf5
+*.csv
+*.dat
+*.png
+*.jpg
+*.jpeg
+*.pdf
+
+# Backup and temporary files
+*~
+*.bak
+*.tmp
+backup/
+*_backup_*/
+tmp/
+temp/
+
+# Log files
+*.log
+*.out
+
+# VS Code settings (optional - you might want to keep these)
+.vscode/
+*.code-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Conda/Miniconda installers
+Miniconda*.sh
+Anaconda*.sh
+
+# Large test files
+test_*.h5
+*_test_result.png
+*_results.png
+*_history.csv
+*_trajectory.csv
+*_analysis.csv
+
+# Archive directories
+Archive/
+archive/
