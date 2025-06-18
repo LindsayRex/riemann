@@ -514,9 +514,12 @@ def create_focused_dataset_summaries(hdf5_file):
         ax1.set_xlabel('Zero-Pair Configuration (γ₁, γ₂)', fontsize=14)
         ax1.set_ylabel('Max |I(δ)|', fontsize=14)
         ax1.grid(True, alpha=0.3)
-        # Add configuration labels on x-axis
-        ax1.set_xticks(x)
-        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        # Set reasonable number of x-axis ticks (every 10th configuration)
+        n_configs = len(x)
+        step = max(1, n_configs // 10)  # Show ~10 ticks max
+        tick_indices = range(0, n_configs, step)
+        ax1.set_xticks([x[i] for i in tick_indices])
+        ax1.set_xticklabels([f'{i+1}' for i in tick_indices], fontsize=12)
         
         # Add legend for significance
         from matplotlib.patches import Patch
@@ -533,9 +536,9 @@ def create_focused_dataset_summaries(hdf5_file):
         ax2.set_ylabel('P-value', fontsize=14)
         ax2.set_yscale('log')
         ax2.set_yticks([1e-16, 1e-10, 1e-5, 1e-3, 1e-2, 1e-1, 1e0])
-        # Add configuration labels on x-axis
-        ax2.set_xticks(x)
-        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        # Set reasonable number of x-axis ticks (every 10th configuration)
+        ax2.set_xticks([x[i] for i in tick_indices])
+        ax2.set_xticklabels([f'{i+1}' for i in tick_indices], fontsize=12)
         ax2.axhline(y=0.05, color='red', linestyle='--', alpha=0.8, linewidth=3, label='α=0.05')
         ax2.legend(fontsize=12)
         ax2.grid(True, alpha=0.3)
@@ -574,9 +577,9 @@ def create_focused_dataset_summaries(hdf5_file):
         ax1.set_ylabel('C₁₂ (Cross-coupling coefficient)', fontsize=14)
         ax1.axhline(y=0, color='k', linestyle='-', alpha=0.6, linewidth=2)
         ax1.grid(True, alpha=0.3)
-        # Add configuration labels on x-axis
-        ax1.set_xticks(x)
-        ax1.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        # Set reasonable number of x-axis ticks (every 10th configuration)
+        ax1.set_xticks([x[i] for i in tick_indices])
+        ax1.set_xticklabels([f'{i+1}' for i in tick_indices], fontsize=12)
         
         # Plot 2: Additivity test results
         additivity_p_vals = [res[1] for res in additivity_results]
@@ -589,9 +592,9 @@ def create_focused_dataset_summaries(hdf5_file):
         ax2.set_ylabel('Additivity Difference', fontsize=14)
         ax2.axhline(y=0, color='k', linestyle='-', alpha=0.6, linewidth=2)
         ax2.grid(True, alpha=0.3)
-        # Add configuration labels on x-axis
-        ax2.set_xticks(x)
-        ax2.set_xticklabels(config_labels, rotation=45, ha='right', fontsize=10)
+        # Set reasonable number of x-axis ticks (every 10th configuration)
+        ax2.set_xticks([x[i] for i in tick_indices])
+        ax2.set_xticklabels([f'{i+1}' for i in tick_indices], fontsize=12)
         
         # Add legend
         legend_elements = [Patch(facecolor='red', label=f'Non-additive (p < 0.05, n={sum(1 for p in additivity_p_vals if p < 0.05)})'),
