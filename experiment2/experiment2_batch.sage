@@ -51,6 +51,9 @@ run_experiment2_stats(batch_filename)
 print(f"\n=== Running Visualization on Complete Dataset ===")
 run_experiment2_viz(batch_filename)
 
+print(f"\n=== Generating Summary Report ===")
+create_experiment2_summary_report(batch_filename)
+
 print(f"\n=== Batch Complete ===")
 print(f"Single output file: {batch_filename}")
 print(f"Analyzed {len(batch_configs)} configurations")

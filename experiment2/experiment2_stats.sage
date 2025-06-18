@@ -235,9 +235,6 @@ def run_experiment2_stats(hdf5_file="experiment2_two_zero_interaction.h5"):
     stats_engine = Experiment2Stats(hdf5_file)
     stats_engine.process_statistics()
     print(f"Statistics computed and written to {hdf5_file}")
-    
-    # Generate summary report
-    create_experiment2_summary_report(hdf5_file)
 
 def create_experiment2_summary_report(hdf5_file):
     """Create comprehensive text summary report for Experiment 2"""
@@ -282,17 +279,17 @@ Parameter Space: γ₁ ∈ [{min(g[0] for g in gamma_pairs):.3f}, {max(g[0] for 
 STABILITY ANALYSIS SUMMARY:
 ----------------------------------------
 Total Configurations: {len(config_groups)}
-Stable Coefficients (C₁ > 0): {sum(1 for c1, _, _ in stability_results if c1 > 0)} ({100*sum(1 for c1, _, _ in stability_results if c1 > 0)/len(stability_results):.1f}%)
+Stable Coefficients (C₁ > 0): {sum(1 for c1, _, _ in stability_results if c1 > 0)} ({float(100*sum(1 for c1, _, _ in stability_results if c1 > 0))/len(stability_results):.1f}%)
 Mean C₁ Coefficient: {np.mean([c1 for c1, _, _ in stability_results]):.6e}
 Mean R² (Fit Quality): {np.mean([r2 for _, _, r2 in stability_results]):.6f}
-Significant Stability (p < 0.05): {sum(1 for _, p, _ in stability_results if p < 0.05)} ({100*sum(1 for _, p, _ in stability_results if p < 0.05)/len(stability_results):.1f}%)
+Significant Stability (p < 0.05): {sum(1 for _, p, _ in stability_results if p < 0.05)} ({float(100*sum(1 for _, p, _ in stability_results if p < 0.05))/len(stability_results):.1f}%)
 
 INTERFERENCE ANALYSIS SUMMARY:
 ----------------------------------------
 Mean Max Interference: {np.mean([interf for interf, _, _ in interference_results]):.6e}
-Significant Interference (p < 0.05): {sum(1 for _, p, _ in interference_results if p < 0.05)} ({100*sum(1 for _, p, _ in interference_results if p < 0.05)/len(interference_results):.1f}%)
+Significant Interference (p < 0.05): {sum(1 for _, p, _ in interference_results if p < 0.05)} ({float(100*sum(1 for _, p, _ in interference_results if p < 0.05))/len(interference_results):.1f}%)
 Mean |Cross-Coupling|: {np.mean([abs(cc) for _, _, cc in interference_results]):.6e}
-Non-Additive Configurations: {sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10)} ({100*sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10)/len(interference_results):.1f}%)
+Non-Additive Configurations: {sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10)} ({float(100*sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10))/len(interference_results):.1f}%)
 
 DETAILED CONFIGURATION RESULTS:
 ----------------------------------------
@@ -310,7 +307,7 @@ STATISTICAL SUMMARY:
 ----------------------------------------
 Overall Assessment: {"STABLE" if sum(1 for c1, _, _ in stability_results if c1 > 0) == len(stability_results) else "MIXED"}
 Riemann Hypothesis Support: All tested zero pairs show local energy minima (C₁ > 0)
-Zero-Zero Interactions: Non-additive behavior detected in {100*sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10)/len(interference_results):.1f}% of configurations
+Zero-Zero Interactions: Non-additive behavior detected in {float(100*sum(1 for _, _, cc in interference_results if abs(cc) > 1e-10))/len(interference_results):.1f}% of configurations
 Mathematical Significance: High-precision validation of critical line stability
 
 EXPERIMENTAL DETAILS:
