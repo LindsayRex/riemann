@@ -1,10 +1,14 @@
 {
-  "gamma1": 233.693404,
-  "gamma2": 236.524229,
   "delta_range": 0.05,
   "delta_steps": 41,
-  "test_function_type": "gaussian",
   "num_test_functions": 20,
+  "test_function_type": "gaussian",
+  "confidence_level": 0.95,
+  "bootstrap_samples": 1000,
+  "output_prefix": "ex2_large",
+  "verbose": false,
+  "gamma1": 137.1831457241748,
+  "gamma2": 528.9071830479106,
   "output_file": "data/experiment2_complete_analysis.h5",
-  "group_name": "config_99_gamma1_233.693404_gamma2_236.524229"
+  "group_name": "config_3456_gamma1_137.1831457241748_gamma2_528.9071830479106"
 }
