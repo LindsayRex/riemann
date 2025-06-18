@@ -1,20 +1,25 @@
 #!/usr/bin/env sage
 
 import json
+import sys
 
 # Load modules
 load('experiment2_math.sage')
 load('experiment2_stats.sage') 
 load('experiment2_viz.sage')
 
+# Get config file from command line argument or use default
+config_file = sys.argv[1] if len(sys.argv) > 1 else 'experiment2_config.json'
+
 # Load configuration
-with open('experiment2_config.json', 'r') as f:
+with open(config_file, 'r') as f:
     config = json.load(f)
 
 batch_configs = config['batch_configs']
 base_config = {k: v for k, v in config.items() if k != 'batch_configs'}
 
 print(f"\n=== Experiment 2 Batch Processing ===")
+print(f"Config file: {config_file}")
 print(f"Running {len(batch_configs)} configurations")
 print(f"Output: experiment2_complete_analysis.h5")
 
