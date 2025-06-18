@@ -27,7 +27,7 @@ for i, batch_config in enumerate(batch_configs):
     # Create current config
     current_config = base_config.copy()
     current_config.update(batch_config)
-    filename = f"experiment2_gamma1_{gamma1}_gamma2_{gamma2}.h5"
+    filename = f"data/experiment2_gamma1_{gamma1}_gamma2_{gamma2}.h5"
     current_config['output_file'] = filename
     
     # Run pipeline: Math → Stats → Viz
