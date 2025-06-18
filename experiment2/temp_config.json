@@ -1,9 +1,10 @@
 {
-  "gamma1": 25.01,
-  "gamma2": 30.42,
+  "gamma1": 37.59,
+  "gamma2": 49.77,
   "delta_range": 0.05,
   "delta_steps": 21,
   "test_function_type": "gaussian",
   "num_test_functions": 10,
-  "output_file": "data/experiment2_gamma1_25.01_gamma2_30.42.h5"
+  "output_file": "experiment2_complete_analysis.h5",
+  "group_name": "config_12_gamma1_37.59_gamma2_49.77"
 }

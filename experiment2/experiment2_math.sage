@@ -87,9 +87,17 @@ class Experiment2Math:
         }
 
     def write_to_hdf5(self, results):
-        with h5py.File(self.output_file, 'w') as f:
-            # Metadata
-            meta = f.create_group('metadata')
+        group_name = self.config.get('group_name', 'config_1')
+        
+        # Open in append mode, create if doesn't exist
+        with h5py.File(self.output_file, 'a') as f:
+            # Create group for this configuration
+            if group_name in f:
+                del f[group_name]  # Remove if exists
+            group = f.create_group(group_name)
+            
+            # Metadata for this configuration
+            meta = group.create_group('metadata')
             meta.attrs['description'] = 'Experiment 2: Two-zero interaction energy functional analysis'
             meta.attrs['gamma_1'] = self.gamma1
             meta.attrs['gamma_2'] = self.gamma2
@@ -98,25 +106,25 @@ class Experiment2Math:
             meta.attrs['test_function_basis'] = self.test_function_type
             
             # Scheme I: shift only gamma1
-            scheme_i = f.create_group('scheme_i')
+            scheme_i = group.create_group('scheme_i')
             scheme_i.create_dataset('delta', data=results['delta'])
             scheme_i.create_dataset('delta_E', data=results['delta_E1'])
             scheme_i.create_dataset('dE_d_delta', data=np.gradient(results['delta_E1'], results['delta']))
             
             # Scheme II: shift only gamma2
-            scheme_ii = f.create_group('scheme_ii')
+            scheme_ii = group.create_group('scheme_ii')
             scheme_ii.create_dataset('delta', data=results['delta'])
             scheme_ii.create_dataset('delta_E', data=results['delta_E2'])
             scheme_ii.create_dataset('dE_d_delta', data=np.gradient(results['delta_E2'], results['delta']))
             
             # Scheme Both: shift both zeros
-            scheme_both = f.create_group('scheme_both')
+            scheme_both = group.create_group('scheme_both')
             scheme_both.create_dataset('delta', data=results['delta'])
             scheme_both.create_dataset('delta_E', data=results['delta_E12'])
             scheme_both.create_dataset('dE_d_delta', data=np.gradient(results['delta_E12'], results['delta']))
             
             # Interference analysis
-            interference = f.create_group('interference_analysis')
+            interference = group.create_group('interference_analysis')
             interference.create_dataset('delta', data=results['delta'])
             interference.create_dataset('interference_ratio', data=results['interference'])
 

@@ -16,8 +16,10 @@ base_config = {k: v for k, v in config.items() if k != 'batch_configs'}
 
 print(f"\n=== Experiment 2 Batch Processing ===")
 print(f"Running {len(batch_configs)} configurations")
+print(f"Output: experiment2_complete_analysis.h5")
 
-results = []
+# Single HDF5 file for all results
+batch_filename = "data/experiment2_complete_analysis.h5"
 
 for i, batch_config in enumerate(batch_configs):
     print(f"\n=== Running configuration {i+1}/{len(batch_configs)} ===")
@@ -27,21 +29,23 @@ for i, batch_config in enumerate(batch_configs):
     # Create current config
     current_config = base_config.copy()
     current_config.update(batch_config)
-    filename = f"data/experiment2_gamma1_{gamma1}_gamma2_{gamma2}.h5"
-    current_config['output_file'] = filename
+    config_name = f"config_{i+1}_gamma1_{gamma1}_gamma2_{gamma2}"
+    current_config['output_file'] = batch_filename
+    current_config['group_name'] = config_name
     
-    # Run pipeline: Math → Stats → Viz
+    # Run pipeline: Math → Stats
     with open('temp_config.json', 'w') as f:
         json.dump(current_config, f, indent=2)
     
     run_experiment2_math('temp_config.json')
-    run_experiment2_stats(filename)
-    run_experiment2_viz(filename)
-    
-    results.append(filename)
-    print(f"✓ Completed: {filename}")
+    print(f"✓ Math completed for {config_name}")
+
+print(f"\n=== Running Statistics on Complete Dataset ===")
+run_experiment2_stats(batch_filename)
+
+print(f"\n=== Running Visualization on Complete Dataset ===")
+run_experiment2_viz(batch_filename)
 
 print(f"\n=== Batch Complete ===")
-print(f"Generated {len(results)} HDF5 files:")
-for result in results:
-    print(f"  - {result}")
+print(f"Single output file: {batch_filename}")
+print(f"Analyzed {len(batch_configs)} configurations")

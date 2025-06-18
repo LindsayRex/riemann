@@ -286,51 +286,48 @@ class Experiment2Viz:
             
             return [plot1_name, plot2_name]
 
-def run_experiment2_viz(hdf5_file="experiment2_two_zero_interaction.h5"):
-    """Generate individual plots for this configuration"""
-    viz = Experiment2Viz(hdf5_file)
-    plot_files = viz.create_plots()
-    
+def run_experiment2_viz(hdf5_file="experiment2_complete_analysis.h5"):
+    """Generate summary visualization for complete dataset"""
     with h5py.File(hdf5_file, 'r') as f:
-        meta = f['metadata']
-        gamma1, gamma2 = meta.attrs['gamma_1'], meta.attrs['gamma_2']
+        print(f"Creating complete dataset visualization from {hdf5_file}")
         
-        # Verify statistical data is present
-        schemes = ['scheme_i', 'scheme_ii', 'scheme_both']
-        stats_present = all(
-            'polyfit_coeffs' in f[scheme] and 'r_squared' in f[scheme].attrs 
-            for scheme in schemes
-        )
+        # Find all configuration groups
+        config_groups = [key for key in f.keys() if key.startswith('config_')]
+        print(f"Found {len(config_groups)} configurations")
         
-        print(f"✓ Plots created for γ₁={gamma1:.2f}, γ₂={gamma2:.2f}")
-        print(f"  Energy curves: {plot_files[0]}")
-        print(f"  Additivity analysis: {plot_files[1]}")
-        print(f"  Statistical data: {'Present' if stats_present else 'Missing'}")
+        # Create complete dataset summary
+        summary_file = create_complete_dataset_summary(hdf5_file)
         
-        return plot_files
+        print(f"✓ Complete dataset visualization: {summary_file}")
+        print(f"  Analyzed {len(config_groups)} configurations")
+        
+        return summary_file
 
-def create_statistical_summary(hdf5_files):
-    """Create comprehensive statistical summary plots for batch analysis"""
-    fig, axes = plt.subplots(3, 3, figsize=(18, 15))
-    fig.suptitle('Experiment 2: Complete Statistical Analysis', fontsize=16)
-    
-    # Collect statistical data
-    gamma_pairs = []
-    c1_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
-    c1_errors = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
-    r_squared = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
-    p_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
-    interference_stats = []
-    cross_coupling_coeffs = []
-    
-    for hdf5_file in hdf5_files:
-        with h5py.File(hdf5_file, 'r') as f:
-            meta = f['metadata']
+def create_complete_dataset_summary(hdf5_file):
+    """Create comprehensive statistical summary plots for complete dataset"""
+    with h5py.File(hdf5_file, 'r') as f:
+        config_groups = [key for key in f.keys() if key.startswith('config_')]
+        
+        fig, axes = plt.subplots(3, 3, figsize=(18, 15))
+        fig.suptitle(f'Experiment 2: Complete Dataset Analysis ({len(config_groups)} configurations)', fontsize=16)
+        
+        # Collect statistical data from all configurations
+        gamma_pairs = []
+        c1_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+        c1_errors = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+        r_squared = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+        p_values = {'scheme_i': [], 'scheme_ii': [], 'scheme_both': []}
+        interference_stats = []
+        cross_coupling_coeffs = []
+        
+        for config_name in config_groups:
+            config_group = f[config_name]
+            meta = config_group['metadata']
             gamma1, gamma2 = float(meta.attrs['gamma_1']), float(meta.attrs['gamma_2'])
             gamma_pairs.append((gamma1, gamma2))
             
             for scheme in ['scheme_i', 'scheme_ii', 'scheme_both']:
-                data = f[scheme]
+                data = config_group[scheme]
                 coeffs = data['polyfit_coeffs'][:]
                 c1_values[scheme].append(float(coeffs[0]))
                 c1_errors[scheme].append(float(data.attrs.get('c1_std_error', 0)))
@@ -338,14 +335,14 @@ def create_statistical_summary(hdf5_files):
                 p_values[scheme].append(float(data.attrs.get('c1_p_value', 1)))
             
             # Interference analysis data
-            interference = f['interference_analysis']
+            interference = config_group['interference_analysis']
             max_interference = float(np.max(np.abs(interference['interference_ratio'][:])))
             mean_interference = float(np.mean(np.abs(interference['interference_ratio'][:])))
             interference_p_value = float(interference.attrs.get('interference_p_value', 1))
             interference_stats.append((max_interference, mean_interference, interference_p_value))
             
             # Cross-coupling coefficient
-            cross_coupling = float(f['interference_analysis'].attrs.get('cross_coupling_coeff', 0))
+            cross_coupling = float(config_group['interference_analysis'].attrs.get('cross_coupling_coeff', 0))
             cross_coupling_coeffs.append(cross_coupling)
     
     colors = ['blue', 'green', 'red']
@@ -424,7 +421,7 @@ def create_statistical_summary(hdf5_files):
     # Plot 7: Overall stability
     stable_count = sum(1 for scheme in ['scheme_i', 'scheme_ii', 'scheme_both'] 
                       for c1 in c1_values[scheme] if c1 > 0)
-    total_count = len(hdf5_files) * 3
+    total_count = len(config_groups) * 3
     
     axes[2,0].bar(['Stable', 'Unstable'], 
                   [stable_count, total_count - stable_count],
@@ -459,7 +456,7 @@ def create_statistical_summary(hdf5_files):
     plt.colorbar(scatter, ax=axes[2,2], label='Max |I(δ)|')
     
     plt.tight_layout()
-    filename = "experiment2_statistical_summary.png"
+    filename = "results/experiment2_statistical_summary.png"
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
     
@@ -468,9 +465,9 @@ def create_statistical_summary(hdf5_files):
     mean_max_interference = float(np.mean([stats[0] for stats in interference_stats]))
     
     print(f"✓ Complete statistical summary: {filename}")
-    print(f"  Analyzed {len(hdf5_files)} configurations")
+    print(f"  Analyzed {len(config_groups)} configurations")
     print(f"  Overall stability: {float(100*stable_count/total_count):.1f}%")
-    print(f"  Significant interference: {significant_interference}/{len(hdf5_files)} configurations")
+    print(f"  Significant interference: {significant_interference}/{len(config_groups)} configurations")
     print(f"  Mean max interference: {mean_max_interference:.2e}")
     
     return filename

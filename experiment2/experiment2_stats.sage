@@ -134,89 +134,99 @@ class Experiment2Stats:
 
     def process_statistics(self):
         with h5py.File(self.hdf5_file, 'r+') as f:
-            # Store coefficients and CIs for cross-coupling analysis
-            scheme_results = {}
+            print(f"Processing statistics for all configurations in {self.hdf5_file}")
             
-            # Process each scheme
-            for scheme_name in ['scheme_i', 'scheme_ii', 'scheme_both']:
-                scheme = f[scheme_name]
-                delta = scheme['delta'][:]
-                delta_E = scheme['delta_E'][:]
-                n_points = len(delta)
+            # Find all configuration groups
+            config_groups = [key for key in f.keys() if key.startswith('config_')]
+            print(f"Found {len(config_groups)} configurations")
+            
+            for config_name in config_groups:
+                print(f"  Processing {config_name}...")
+                config_group = f[config_name]
                 
-                # Enhanced polynomial fit with standard errors
-                polyfit_coeffs, r_squared, std_errors = self.fit_quadratic(delta, delta_E)
+                # Store coefficients and CIs for cross-coupling analysis
+                scheme_results = {}
                 
-                # Bootstrap confidence intervals
-                bootstrap_CI = self.bootstrap_ci(delta, delta_E)
+                # Process each scheme
+                for scheme_name in ['scheme_i', 'scheme_ii', 'scheme_both']:
+                    scheme = config_group[scheme_name]
+                    delta = scheme['delta'][:]
+                    delta_E = scheme['delta_E'][:]
+                    n_points = len(delta)
+                    
+                    # Enhanced polynomial fit with standard errors
+                    polyfit_coeffs, r_squared, std_errors = self.fit_quadratic(delta, delta_E)
+                    
+                    # Bootstrap confidence intervals
+                    bootstrap_CI = self.bootstrap_ci(delta, delta_E)
+                    
+                    # P-value for C1 > 0 test
+                    c1_p_value = self.compute_c1_p_value(polyfit_coeffs[0], std_errors[0], n_points)
+                    
+                    # Store results for cross-coupling analysis
+                    scheme_results[scheme_name] = {
+                        'c1': polyfit_coeffs[0],
+                        'ci': bootstrap_CI,
+                        'std_error': std_errors[0]
+                    }
+                    
+                    # Write results back to HDF5
+                    if 'polyfit_coeffs' in scheme:
+                        del scheme['polyfit_coeffs']
+                    if 'bootstrap_CI' in scheme:
+                        del scheme['bootstrap_CI']
+                    
+                    scheme.create_dataset('polyfit_coeffs', data=polyfit_coeffs)
+                    scheme.create_dataset('bootstrap_CI', data=bootstrap_CI)
+                    scheme.attrs['r_squared'] = float(r_squared)
+                    scheme.attrs['c1_std_error'] = float(std_errors[0])
+                    scheme.attrs['c1_p_value'] = float(c1_p_value)
+                    scheme.attrs['stability'] = 'stable' if polyfit_coeffs[0] > 0 else 'unstable'
                 
-                # P-value for C1 > 0 test
-                c1_p_value = self.compute_c1_p_value(polyfit_coeffs[0], std_errors[0], n_points)
+                # Enhanced interference analysis
+                interference_group = config_group['interference_analysis']
+                interference = interference_group['interference_ratio'][:]
                 
-                # Store results for cross-coupling analysis
-                scheme_results[scheme_name] = {
-                    'c1': polyfit_coeffs[0],
-                    'ci': bootstrap_CI,
-                    'std_error': std_errors[0]
-                }
+                # Comprehensive interference statistics
+                interference_stats = self.compute_interference_stats(interference)
                 
-                # Write results back to HDF5
-                if 'polyfit_coeffs' in scheme:
-                    del scheme['polyfit_coeffs']
-                if 'bootstrap_CI' in scheme:
-                    del scheme['bootstrap_CI']
+                # Write interference results
+                if 'p_values' in interference_group:
+                    del interference_group['p_values']
+                interference_group.create_dataset('p_values', data=np.full(len(interference), interference_stats['p_value']))
                 
-                scheme.create_dataset('polyfit_coeffs', data=polyfit_coeffs)
-                scheme.create_dataset('bootstrap_CI', data=bootstrap_CI)
-                scheme.attrs['r_squared'] = float(r_squared)
-                scheme.attrs['c1_std_error'] = float(std_errors[0])
-                scheme.attrs['c1_p_value'] = float(c1_p_value)
-                scheme.attrs['stability'] = 'stable' if polyfit_coeffs[0] > 0 else 'unstable'
-            
-            # Enhanced interference analysis
-            interference_group = f['interference_analysis']
-            interference = interference_group['interference_ratio'][:]
-            
-            # Comprehensive interference statistics
-            interference_stats = self.compute_interference_stats(interference)
-            
-            # Write interference results
-            if 'p_values' in interference_group:
-                del interference_group['p_values']
-            interference_group.create_dataset('p_values', data=np.full(len(interference), interference_stats['p_value']))
-            
-            # Write interference attributes
-            interference_group.attrs['mean_interference'] = float(interference_stats['mean_interference'])
-            interference_group.attrs['std_interference'] = float(interference_stats['std_interference'])
-            interference_group.attrs['max_interference'] = float(interference_stats['max_interference'])
-            interference_group.attrs['interference_p_value'] = float(interference_stats['p_value'])
-            
-            # Cross-coupling analysis
-            c1_i = scheme_results['scheme_i']['c1']
-            c1_ii = scheme_results['scheme_ii']['c1']
-            c1_both = scheme_results['scheme_both']['c1']
-            
-            cross_coupling_coeff = self.compute_cross_coupling(c1_i, c1_ii, c1_both)
-            interference_group.attrs['cross_coupling_coeff'] = float(cross_coupling_coeff)
-            
-            # Additivity test
-            ci_i = scheme_results['scheme_i']['ci']
-            ci_ii = scheme_results['scheme_ii']['ci']
-            ci_both = scheme_results['scheme_both']['ci']
-            
-            additivity_results = self.additivity_test(c1_i, c1_ii, c1_both, ci_i, ci_ii, ci_both)
-            
-            interference_group.attrs['additivity_difference'] = float(additivity_results['difference'])
-            interference_group.attrs['additivity_se'] = float(additivity_results['se_difference'])
-            interference_group.attrs['additivity_p_value'] = float(additivity_results['p_value_additivity'])
-            interference_group.attrs['additivity_violated'] = bool(additivity_results['additivity_violated'])
-            
-            # Summary notes
-            notes = (f"Interference: mean={interference_stats['mean_interference']:.3e}, "
-                    f"max={interference_stats['max_interference']:.3e}, "
-                    f"p={interference_stats['p_value']:.3e}; "
-                    f"Cross-coupling C12={cross_coupling_coeff:.3e}; "
-                    f"Additivity: diff={additivity_results['difference']:.3e}, "
+                # Write interference attributes
+                interference_group.attrs['mean_interference'] = float(interference_stats['mean_interference'])
+                interference_group.attrs['std_interference'] = float(interference_stats['std_interference'])
+                interference_group.attrs['max_interference'] = float(interference_stats['max_interference'])
+                interference_group.attrs['interference_p_value'] = float(interference_stats['p_value'])
+                
+                # Cross-coupling analysis
+                c1_i = scheme_results['scheme_i']['c1']
+                c1_ii = scheme_results['scheme_ii']['c1']
+                c1_both = scheme_results['scheme_both']['c1']
+                
+                cross_coupling_coeff = self.compute_cross_coupling(c1_i, c1_ii, c1_both)
+                interference_group.attrs['cross_coupling_coeff'] = float(cross_coupling_coeff)
+                
+                # Additivity test
+                ci_i = scheme_results['scheme_i']['ci']
+                ci_ii = scheme_results['scheme_ii']['ci']
+                ci_both = scheme_results['scheme_both']['ci']
+                
+                additivity_results = self.additivity_test(c1_i, c1_ii, c1_both, ci_i, ci_ii, ci_both)
+                
+                interference_group.attrs['additivity_difference'] = float(additivity_results['difference'])
+                interference_group.attrs['additivity_se'] = float(additivity_results['se_difference'])
+                interference_group.attrs['additivity_p_value'] = float(additivity_results['p_value_additivity'])
+                interference_group.attrs['additivity_violated'] = bool(additivity_results['additivity_violated'])
+                
+                # Summary notes
+                notes = (f"Interference: mean={interference_stats['mean_interference']:.3e}, "
+                        f"max={interference_stats['max_interference']:.3e}, "
+                        f"p={interference_stats['p_value']:.3e}; "
+                        f"Cross-coupling C12={cross_coupling_coeff:.3e}; "
+                        f"Additivity: diff={additivity_results['difference']:.3e}, "
                     f"p={additivity_results['p_value_additivity']:.3e}")
             interference_group.attrs['notes'] = notes
 
