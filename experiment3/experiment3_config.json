@@ -1,0 +1,53 @@
+{
+  "description": "Experiment 3: Multi-Zero Scaling Analysis",
+  "delta_range": 0.05,
+  "delta_steps": 41,
+  "test_function_type": "gaussian",
+  "num_test_functions": 20,
+  "confidence_level": 0.95,
+  "bootstrap_samples": 1000,
+  "output_file": "data/experiment3_multi_zero_analysis.h5",
+  "verbose": true,
+  "batch_configs": [
+    {
+      "experiment_type": "multi_zero_uniform",
+      "zero_count": 3,
+      "gamma_values": [14.134725, 21.022040, 25.010857],
+      "perturbation_mode": "uniform"
+    },
+    {
+      "experiment_type": "multi_zero_uniform", 
+      "zero_count": 5,
+      "gamma_values": [14.134725, 21.022040, 25.010857, 30.424876, 32.935062],
+      "perturbation_mode": "uniform"
+    },
+    {
+      "experiment_type": "multi_zero_uniform",
+      "zero_count": 7,
+      "gamma_values": [14.134725, 21.022040, 25.010857, 30.424876, 32.935062, 37.586178, 40.918719],
+      "perturbation_mode": "uniform"
+    },
+    {
+      "experiment_type": "multi_zero_uniform",
+      "zero_count": 10,
+      "gamma_values": [14.134725, 21.022040, 25.010857, 30.424876, 32.935062, 37.586178, 40.918719, 43.327073, 48.005151, 49.773832],
+      "perturbation_mode": "uniform"
+    },
+    {
+      "experiment_type": "multi_zero_random",
+      "zero_count": 5,
+      "gamma_values": [14.134725, 21.022040, 25.010857, 30.424876, 32.935062],
+      "perturbation_mode": "random",
+      "random_seed": 42,
+      "random_scale": 0.01
+    },
+    {
+      "experiment_type": "multi_zero_random",
+      "zero_count": 10,
+      "gamma_values": [14.134725, 21.022040, 25.010857, 30.424876, 32.935062, 37.586178, 40.918719, 43.327073, 48.005151, 49.773832],
+      "perturbation_mode": "random",
+      "random_seed": 42,
+      "random_scale": 0.01
+    }
+  ]
+}
