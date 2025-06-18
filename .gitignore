@@ -53,8 +53,7 @@ Anaconda*.sh
 
 # Large test files
 test_*.h5
-*_test_result.png
-*_results.png
+
 *_history.csv
 *_trajectory.csv
 *_analysis.csv

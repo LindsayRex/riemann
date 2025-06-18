@@ -206,6 +206,8 @@ class Experiment3Stats:
                     c1_p_value = self.compute_c1_p_value(c1, std_errors[0], len(delta))
                     
                     # Store statistical results
+                    if 'statistical_analysis' in config_group:
+                        del config_group['statistical_analysis']  # Remove if exists
                     stats_group = config_group.create_group('statistical_analysis')
                     stats_group.create_dataset('polyfit_coeffs', data=[c1, c3])
                     stats_group.create_dataset('bootstrap_CI', data=bootstrap_ci)
@@ -234,6 +236,8 @@ class Experiment3Stats:
                     scaling_results = self.analyze_random_perturbation_scaling(delta_E_samples, sum_delta_squared)
                     
                     # Store results
+                    if 'statistical_analysis' in config_group:
+                        del config_group['statistical_analysis']  # Remove if exists
                     stats_group = config_group.create_group('statistical_analysis')
                     stats_group.attrs['c1_effective'] = scaling_results['c1_effective']
                     stats_group.attrs['c1_std_error'] = scaling_results['c1_std_error']
@@ -304,7 +308,7 @@ class Experiment3Stats:
             mean_r2 = float(np.mean([r['r_squared'] for r in uniform_results]))
             
             report_lines.append(f"Total Configurations: {len(uniform_results)}")
-            report_lines.append(f"Stable Coefficients (C₁ > 0): {stable_count} ({100*stable_count/len(uniform_results):.1f}%)")
+            report_lines.append(f"Stable Coefficients (C₁ > 0): {stable_count} ({float(100*stable_count/len(uniform_results)):.1f}%)")
             report_lines.append(f"Mean C₁ Coefficient: {mean_c1:.6e}")
             report_lines.append(f"Mean R² (Fit Quality): {mean_r2:.6f}")
             
