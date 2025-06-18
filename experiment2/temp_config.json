@@ -5,5 +5,5 @@
   "delta_steps": 21,
   "test_function_type": "gaussian",
   "num_test_functions": 10,
-  "output_file": "experiment2_gamma1_25.01_gamma2_30.42.h5"
+  "output_file": "data/experiment2_gamma1_25.01_gamma2_30.42.h5"
 }
