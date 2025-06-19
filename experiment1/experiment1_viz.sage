@@ -42,6 +42,17 @@ class Experiment1Visualization:
         self.output_prefix = output_prefix
         self.figsize = figsize
         self.dpi = dpi
+
+        # Color scheme
+        self.colors = {
+            'data': '#1f77b4',
+            'quadratic': '#ff7f0e', 
+            'cubic': '#2ca02c',
+            'quartic': '#d62728',
+            'confidence': '#1f77b4',
+            'residuals': '#8c564b',
+            'critical': '#e377c2'
+        }
         
         # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
@@ -60,17 +71,6 @@ class Experiment1Visualization:
             'lines.linewidth': 2,
             'lines.markersize': 4
         })
-        
-        # Color scheme
-        self.colors = {
-            'data': '#1f77b4',
-            'quadratic': '#ff7f0e', 
-            'cubic': '#2ca02c',
-            'quartic': '#d62728',
-            'confidence': '#1f77b4',
-            'residuals': '#8c564b',
-            'critical': '#e377c2'
-        }
         
         print(f"Experiment 1 Visualization initialized:")
         print(f"  HDF5 file: {hdf5_file}")
