@@ -1,0 +1,152 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		// Terminal and environment configuration
+		"python.defaultInterpreterPath": "/home/rexl1/miniconda3/envs/sagemath/bin/python",
+		"python.terminal.activateEnvironment": true,
+		"terminal.integrated.defaultProfile.linux": "bash",
+		"terminal.integrated.cwd": "${workspaceFolder}",
+		"terminal.integrated.profiles.linux": {
+			"bash": {
+				"path": "/bin/bash",
+				"args": ["-c", "source /home/rexl1/miniconda3/etc/profile.d/conda.sh && conda activate sagemath && exec bash"]
+			}
+		},
+		
+		// File associations for SageMath
+		"files.associations": {
+			"*.sage": "python",
+			"*.spyx": "python"
+		},
+		
+		// GitHub Copilot configuration
+		"github.copilot.enable": {
+			"*": true,
+			"yaml": true,
+			"plaintext": true,
+			"markdown": true,
+			"python": true
+		},
+		
+		// Editor settings for mathematical content
+		"editor.wordWrap": "on",
+		"editor.rulers": [80, 120],
+		"editor.insertSpaces": true,
+		"editor.tabSize": 4,
+		
+		// Markdown settings for documentation
+		"markdown.preview.breaks": true,
+		"markdown.preview.typographer": true,
+		
+		// Search settings to include relevant files
+		"search.exclude": {
+			"**/results/**": false,
+			"**/analysis/**": false
+		},
+		
+		// Language-specific settings
+		"[python]": {
+			"editor.formatOnSave": false,
+			"editor.insertSpaces": true,
+			"editor.tabSize": 4
+		},
+		
+		"[markdown]": {
+			"editor.wordWrap": "on",
+			"editor.quickSuggestions": {
+				"comments": "off",
+				"strings": "off",
+				"other": "off"
+			}
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-python.python",
+			"github.copilot",
+			"github.copilot-chat",
+			"yzhang.markdown-all-in-one",
+			"james-yu.latex-workshop"
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"options": {
+			"cwd": "${workspaceFolder}"
+		},
+		"tasks": [
+			{
+				"label": "Run Experiment 1",
+				"type": "shell",
+				"command": "sage",
+				"args": ["experiment1/experiment1_batch.sage", "experiment1/experiment1_config.json"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				},
+				"problemMatcher": []
+			},
+			{
+				"label": "Run Experiment 2", 
+				"type": "shell",
+				"command": "sage",
+				"args": ["experiment2/experiment2_batch.sage", "experiment2/experiment2_config.json"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				},
+				"problemMatcher": []
+			},
+			{
+				"label": "Run Experiment 3 (Small)",
+				"type": "shell", 
+				"command": "sage",
+				"args": ["experiment3/experiment3_batch.sage", "experiment3/experiment3_config.json"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always", 
+					"focus": false,
+					"panel": "new"
+				},
+				"problemMatcher": []
+			},
+			{
+				"label": "Generate Analysis Report",
+				"type": "shell",
+				"command": "python",
+				"args": ["analysis/generate_universal_critical_restoration_report.py"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				},
+				"problemMatcher": []
+			}
+		]
+	}
+}
