@@ -163,3 +163,4 @@ This program is not just about getting a “yes or no” to the Riemann Hypothes
 * 📐 It seeks **quantitative structure**: inequalities, asymptotics, operator bounds—all the ingredients needed for a real proof.
 * 🧠 It combines logic, computation, and physical intuition into a mathematically sound pipeline for discovery.
 
+Credited environment, Yarrow.
