@@ -767,7 +767,8 @@ class Experiment1Statistics:
                                 status = "Unknown"
                                 if 'hypothesis_testing' in stats_group and 'local_stability' in stats_group['hypothesis_testing']:
                                     stability_group = stats_group['hypothesis_testing']['local_stability']
-                                    is_significant = bool(stability_group['significant'][()])
+                                    p_value = float(stability_group['p_value'][()])
+                                    is_significant = p_value < 0.05
                                     status = "Stable" if is_significant else "Unstable"
                                 
                                 report.write(f"{config_name:<20} {C1*1e6:<15.3f} {C2*1e9:<15.3f} {R2:<10.6f} {status:<15}\n")
@@ -817,7 +818,7 @@ class Experiment1Statistics:
                                     stability_group = hyp_group['local_stability']
                                     t_stat = float(stability_group['test_statistic'][()])
                                     p_val = float(stability_group['p_value'][()])
-                                    significant = bool(stability_group['significant'][()])
+                                    significant = p_val < 0.05
                                     
                                     report.write(f"  Local Stability (C₁ > 0): t = {t_stat:.4f}, p = {p_val:.6f}")
                                     report.write(f" -> {'STABLE' if significant else 'INCONCLUSIVE'}\n")
@@ -826,7 +827,7 @@ class Experiment1Statistics:
                                     cubic_group = hyp_group['cubic_significance']
                                     t_stat = float(cubic_group['test_statistic'][()])
                                     p_val = float(cubic_group['p_value'][()])
-                                    significant = bool(cubic_group['significant'][()])
+                                    significant = p_val < 0.05
                                     
                                     report.write(f"  Cubic Term (C₂ ≠ 0): t = {t_stat:.4f}, p = {p_val:.6f}")
                                     report.write(f" -> {'SIGNIFICANT' if significant else 'NOT SIGNIFICANT'}\n")

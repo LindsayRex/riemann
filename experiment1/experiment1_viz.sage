@@ -332,7 +332,9 @@ class Experiment1Visualization:
         # Local stability test
         if 'local_stability' in hypothesis_tests:
             stability = hypothesis_tests['local_stability']
-            result_color = 'green' if stability['significant'] else 'orange'
+            # Calculate significance from p-value
+            is_significant = stability['p_value'] < 0.05
+            result_color = 'green' if is_significant else 'orange'
             
             ax.text(0.05, y_pos, '1. LOCAL STABILITY TEST (C₁ > 0):', 
                    transform=ax.transAxes, fontsize=12, fontweight='bold')
@@ -350,7 +352,7 @@ class Experiment1Visualization:
                    transform=ax.transAxes, fontsize=10)
             y_pos -= line_height
             
-            result_text = 'STABLE' if stability['significant'] else 'INCONCLUSIVE'
+            result_text = 'STABLE' if is_significant else 'INCONCLUSIVE'
             ax.text(0.1, y_pos, f"Result: {result_text}",
                    transform=ax.transAxes, fontsize=12, fontweight='bold',
                    color=result_color)
@@ -359,6 +361,8 @@ class Experiment1Visualization:
         # Cubic term significance
         if 'cubic_significance' in hypothesis_tests:
             cubic = hypothesis_tests['cubic_significance']
+            # Calculate significance from p-value
+            is_significant = cubic['p_value'] < 0.05
             
             ax.text(0.05, y_pos, '2. CUBIC TERM SIGNIFICANCE (C₂ ≠ 0):', 
                    transform=ax.transAxes, fontsize=12, fontweight='bold')
@@ -376,8 +380,8 @@ class Experiment1Visualization:
                    transform=ax.transAxes, fontsize=10)
             y_pos -= line_height
             
-            result_text = 'SIGNIFICANT' if cubic['significant'] else 'NOT SIGNIFICANT'
-            result_color = 'red' if cubic['significant'] else 'green'
+            result_text = 'SIGNIFICANT' if is_significant else 'NOT SIGNIFICANT'
+            result_color = 'red' if is_significant else 'green'
             ax.text(0.1, y_pos, f"Result: {result_text}",
                    transform=ax.transAxes, fontsize=12, fontweight='bold',
                    color=result_color)
@@ -1445,7 +1449,7 @@ class Experiment1Visualization:
                 
                 # Panel 1: Local stability test results
                 colors = ['green' if sig else 'red' for sig in stability_significant]
-                ax1.scatter(gammas, np.log10(stability_pvals), c=colors, s=100, alpha=0.7, edgecolors='black')
+                ax1.scatter(gammas, np.log10(np.maximum(stability_pvals, 1e-16)), c=colors, s=100, alpha=0.7, edgecolors='black')
                 ax1.set_xlabel('Gamma (γ)')
                 ax1.set_ylabel('log₁₀(p-value)')
                 ax1.set_title('Local Stability Test (C₁ > 0)')
@@ -1457,13 +1461,13 @@ class Experiment1Visualization:
                 # Add annotations for significance
                 for i, (gamma, pval, sig) in enumerate(zip(gammas, stability_pvals, stability_significant)):
                     status = 'Stable' if sig else 'Unstable'
-                    ax1.annotate(status, (gamma, np.log10(pval)), 
+                    ax1.annotate(status, (gamma, np.log10(max(pval, 1e-16))), 
                                xytext=(5, 5), textcoords='offset points', 
                                fontsize=8, alpha=0.8)
                 
                 # Panel 2: Cubic term significance test results
                 colors = ['red' if sig else 'green' for sig in cubic_significant]
-                ax2.scatter(gammas, np.log10(cubic_pvals), c=colors, s=100, alpha=0.7, edgecolors='black')
+                ax2.scatter(gammas, np.log10(np.maximum(cubic_pvals, 1e-16)), c=colors, s=100, alpha=0.7, edgecolors='black')
                 ax2.set_xlabel('Gamma (γ)')
                 ax2.set_ylabel('log₁₀(p-value)')
                 ax2.set_title('Cubic Term Significance (C₂ ≠ 0)')
@@ -1475,7 +1479,7 @@ class Experiment1Visualization:
                 # Add annotations
                 for i, (gamma, pval, sig) in enumerate(zip(gammas, cubic_pvals, cubic_significant)):
                     status = 'Significant' if sig else 'Not Significant'
-                    ax2.annotate(status, (gamma, np.log10(pval)), 
+                    ax2.annotate(status, (gamma, np.log10(max(pval, 1e-16))), 
                                xytext=(5, 5), textcoords='offset points', 
                                fontsize=8, alpha=0.8)
                 

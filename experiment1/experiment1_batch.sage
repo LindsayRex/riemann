@@ -196,12 +196,18 @@ class Experiment1BatchOrchestrator:
                 
                 # Extract statistical results if available
                 stats_data = {}
-                if 'statistical_analysis' in group:
-                    stats = group['statistical_analysis']
-                    for key in stats.keys():
-                        stats_data[key] = stats[key][()]
-                    for attr_name in stats.attrs:
-                        stats_data[attr_name] = stats.attrs[attr_name]
+                if 'statistics' in group:
+                    stats = group['statistics']
+                    # Extract quadratic fitting results (C1, R²)
+                    if 'fitting_results' in stats and 'quadratic' in stats['fitting_results']:
+                        quad = stats['fitting_results']['quadratic']
+                        stats_data['C1_coefficient'] = quad['C1'][()]
+                        stats_data['r_squared'] = quad['r_squared'][()]
+                    
+                    # Extract hypothesis testing p-value
+                    if 'hypothesis_testing' in stats and 'local_stability' in stats['hypothesis_testing']:
+                        local_stab = stats['hypothesis_testing']['local_stability']
+                        stats_data['p_value_stability'] = local_stab['p_value'][()]
                 
                 config_data.append({
                     'name': config_name,

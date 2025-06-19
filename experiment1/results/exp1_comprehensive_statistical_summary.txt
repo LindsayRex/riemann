@@ -1,10 +1,30 @@
 EXPERIMENT 1: COMPREHENSIVE STATISTICAL ANALYSIS SUMMARY
 ======================================================================
 
-Generated: 2025-06-19 15:00:37
-Total configurations: 3
+Generated: 2025-06-19 15:11:21
+Total configurations: 1
 
 CONFIGURATION SUMMARY
 --------------------------------------------------
 Config               C₁ (x10⁻⁶)      C₂ (x10⁻⁹)      R²         Status         
 ---------------------------------------------------------------------------
+config_1_gamma_14_134725141734693_gaussian 140094221.715   -2796.057       1.000000   Stable         
+
+
+DETAILED ANALYSIS BY CONFIGURATION
+==================================================
+
+Configuration: config_1_gamma_14_134725141734693_gaussian
+---------------------------------------------------------
+Polynomial Fitting Results:
+  Quadratic: R² = 1.000000, AIC = -1079.81
+  Cubic: R² = 1.000000, AIC = -1077.81
+    C₁ = 1.400942e+02 ± 2.46e-03
+    C₂ = -2.796057e-06 ± 1.02e-02
+  Quartic: R² = 1.000000, AIC = -1301.66
+
+Hypothesis Testing:
+  Local Stability (C₁ > 0): t = 56879.4653, p = 0.000000 -> STABLE
+  Cubic Term (C₂ ≠ 0): t = -0.0003, p = 0.999782 -> NOT SIGNIFICANT
+
+
