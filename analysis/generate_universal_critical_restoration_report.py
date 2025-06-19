@@ -99,16 +99,26 @@ class UniversalCriticalRestorationReport:
             content = report_file.read_text()
             results['raw_content'] = content
             
-            # Extract key metrics
-            c1_matches = re.findall(r'C₁[:\s=]+([0-9.]+e[+-]?[0-9]+)', content)
+            # Extract key metrics - handle both scientific and regular notation
+            c1_matches = re.findall(r'C₁[:\s=]+([0-9.]+(?:e[+-]?[0-9]+)?)', content)
             if c1_matches:
                 results['c1'] = c1_matches[0]
+                
+            # Extract mean C1 if available
+            mean_c1_matches = re.findall(r'Mean C₁ Coefficient[:\s=]+([0-9.]+(?:e[+-]?[0-9]+)?)', content)
+            if mean_c1_matches:
+                results['mean_c1'] = mean_c1_matches[0]
                 
             r2_matches = re.findall(r'R²[:\s=]+([0-9.]+)', content)
             if r2_matches:
                 results['r_squared'] = r2_matches[0]
                 
-            p_matches = re.findall(r'p-value[:\s=]+([0-9.]+e[+-]?[0-9]+)', content)
+            # Extract mean R² if available
+            mean_r2_matches = re.findall(r'Mean R²[:\s=\(]+([0-9.]+)', content)
+            if mean_r2_matches:
+                results['mean_r_squared'] = mean_r2_matches[0]
+                
+            p_matches = re.findall(r'p-value[:\s=]+([0-9.]+(?:e[+-]?[0-9]+)?)', content)
             if p_matches:
                 results['p_value'] = p_matches[0]
             
@@ -116,6 +126,17 @@ class UniversalCriticalRestorationReport:
             config_matches = re.findall(r'Total Configurations?[:\s=]+([0-9,]+)', content)
             if config_matches:
                 results['total_configs'] = config_matches[0].replace(',', '')
+                
+            # Extract stability percentage
+            stability_matches = re.findall(r'Stable Coefficients.*?([0-9.]+)%', content)
+            if stability_matches:
+                results['stability_percentage'] = stability_matches[0]
+                
+            # Extract scaling law parameters (for Experiment 3)
+            scaling_matches = re.findall(r'Scaling: C₁\^\(N\) = ([0-9.-]+(?:e[+-]?[0-9]+)?) \+ ([0-9.-]+(?:e[+-]?[0-9]+)?) × N', content)
+            if scaling_matches:
+                results['scaling_intercept'] = scaling_matches[0][0]
+                results['scaling_slope'] = scaling_matches[0][1]
                 
         except Exception as e:
             print(f"Error reading {report_file}: {e}")
