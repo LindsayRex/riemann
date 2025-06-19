@@ -1,7 +1,7 @@
 EXPERIMENT 1: SINGLE-ZERO PERTURBATION ANALYSIS
 ======================================================================
 
-Analysis Timestamp: 2025-06-19 13:56:11
+Analysis Timestamp: 2025-06-19 15:00:46
 Dataset: 3 configurations
 Parameter Space: γ ∈ [14.135, 25.011]
 
@@ -28,7 +28,7 @@ Statistical Methods: Polynomial fitting, bootstrap confidence intervals, hypothe
 
 GENERATED FILES:
 --------------------
-  HDF5 data: data/experiment1_analysis.h5
+  HDF5 data: experiment1/data/experiment1_analysis.h5
   Summary images: experiment1_summary_1.png through experiment1_summary_5.png
-  This report: results/experiment1_summary_report.txt
+  This report: experiment1/results/experiment1_summary_report.txt
 

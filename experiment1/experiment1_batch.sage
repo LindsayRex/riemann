@@ -24,9 +24,9 @@ import numpy as np
 from pathlib import Path
 
 # Load modules following Design Guide pattern
-load('experiment1_math.sage')
-load('experiment1_stats.sage') 
-load('experiment1_viz.sage')
+load('experiment1/experiment1_math.sage')
+load('experiment1/experiment1_stats.sage') 
+load('experiment1/experiment1_viz.sage')
 
 class Experiment1BatchOrchestrator:
     """
@@ -43,7 +43,7 @@ class Experiment1BatchOrchestrator:
         """
         self.config_file = config_file
         self.config = self._load_configuration()
-        self.hdf5_file = f"data/{self.config.get('output_file', 'experiment1_analysis.h5')}"
+        self.hdf5_file = f"experiment1/data/{self.config.get('output_file', 'experiment1_analysis.h5')}"
         
         print("=" * 80)
         print("EXPERIMENT 1: BATCH ORCHESTRATOR")
@@ -52,8 +52,8 @@ class Experiment1BatchOrchestrator:
         print(f"Output HDF5: {self.hdf5_file}")
         
         # Create data and results directories
-        Path("data").mkdir(exist_ok=True)
-        Path("results").mkdir(exist_ok=True)
+        Path("experiment1/data").mkdir(exist_ok=True)
+        Path("experiment1/results").mkdir(exist_ok=True)
         
     def _load_configuration(self):
         """Load and validate configuration from JSON file."""
@@ -164,7 +164,7 @@ class Experiment1BatchOrchestrator:
         stats_analyzer.analyze_all_configurations()
         
         # Generate comprehensive summary report
-        summary_report_path = "results/exp1_comprehensive_statistical_summary.txt"
+        summary_report_path = "experiment1/results/exp1_comprehensive_statistical_summary.txt"
         stats_analyzer.generate_summary_report(summary_report_path)
         
     def _run_visualization_engine(self):
@@ -172,7 +172,7 @@ class Experiment1BatchOrchestrator:
         Execute Layer 4: Enhanced Visualization Engine - generate comprehensive analysis.
         """
         print("📊 Running comprehensive visualization engine...")
-        viz_engine = Experiment1Visualization(self.hdf5_file, output_dir="results")
+        viz_engine = Experiment1Visualization(self.hdf5_file, output_dir="experiment1/results")
         generated_files = viz_engine.generate_all_visualizations()
         
         print(f"✅ Generated {len(generated_files)} visualization files")
@@ -182,7 +182,7 @@ class Experiment1BatchOrchestrator:
         Generate unified summary report following existing format.
         Creates experiment1_summary_report.txt in results directory.
         """
-        report_path = "results/experiment1_summary_report.txt"
+        report_path = "experiment1/results/experiment1_summary_report.txt"
         
         # Read all configuration data from HDF5
         config_data = []
