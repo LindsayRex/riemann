@@ -170,156 +170,135 @@ class Experiment1BatchOrchestrator:
         viz_engine.generate_summary_visualizations()
         
     def _generate_summary_report(self):
-        """Generate comprehensive summary report following Design Guide structure."""
-        report_filename = "results/experiment1_summary_report.txt"
+        """
+        Generate unified summary report following existing format.
+        Creates experiment1_summary_report.txt in results directory.
+        """
+        report_path = "results/experiment1_summary_report.txt"
         
-        try:
-            with h5py.File(self.hdf5_file, 'r') as f:
-                report_lines = []
+        # Read all configuration data from HDF5
+        config_data = []
+        
+        with h5py.File(self.hdf5_file, 'r') as f:
+            for config_name in f.keys():
+                group = f[config_name]
                 
-                # Header
-                report_lines.extend([
-                    "EXPERIMENT 1: Single-Zero Perturbation Analysis",
-                    "=" * 70,
-                    "",
-                    f"Analysis Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}",
-                    f"Dataset: {len(f.keys())} configurations",
-                    f"HDF5 File: {self.hdf5_file}",
-                    ""
-                ])
+                # Extract metadata
+                metadata = group['metadata']
                 
-                # Collect statistics across all configurations
-                all_c1 = []
-                all_r2 = []
-                all_significant = []
-                all_gammas = []
+                # Extract statistical results if available
+                stats_data = {}
+                if 'statistical_analysis' in group:
+                    stats = group['statistical_analysis']
+                    for key in stats.keys():
+                        stats_data[key] = stats[key][()]
+                    for attr_name in stats.attrs:
+                        stats_data[attr_name] = stats.attrs[attr_name]
                 
-                for config_name in f.keys():
-                    group = f[config_name]
-                    gamma = group['metadata'].attrs['gamma']
-                    all_gammas.append(gamma)
-                    
-                    if 'statistical_analysis' in group:
-                        stats = group['statistical_analysis']
-                        all_c1.append(stats.attrs['C1_coefficient'])
-                        all_r2.append(stats.attrs['r_squared'])
-                        all_significant.append(stats.attrs['stability_significant'])
-                
-                # Parameter space summary
-                gamma_min, gamma_max = min(all_gammas), max(all_gammas)
-                report_lines.extend([
-                    f"Parameter Space: γ ∈ [{gamma_min:.2f}, {gamma_max:.2f}]",
-                    "",
-                    "STABILITY ANALYSIS SUMMARY:",
-                    "-" * 40
-                ])
-                
-                if all_c1:
-                    stable_count = sum(all_significant)
-                    stable_percent = 100 * stable_count / len(all_significant)
-                    mean_c1 = np.mean(all_c1)
-                    mean_r2 = np.mean(all_r2)
-                    
-                    report_lines.extend([
-                        f"Total Configurations: {len(all_c1)}",
-                        f"Stable Coefficients (C₁ > 0): {stable_count} ({stable_percent:.1f}%)",
-                        f"Mean C₁ Coefficient: {mean_c1:.6e}",
-                        f"Mean R² (Fit Quality): {mean_r2:.6f}",
-                        f"Significant Stability (p < 0.05): {stable_count} ({stable_percent:.1f}%)",
-                        ""
-                    ])
-                
-                # Detailed configuration results
-                report_lines.extend([
-                    "DETAILED CONFIGURATION RESULTS:",
-                    "-" * 40,
-                    f"{'Config':<35} {'γ':<12} {'C₁':<15} {'R²':<10} {'Stable':<8}",
-                    "-" * 80
-                ])
-                
-                for config_name in f.keys():
-                    group = f[config_name]
-                    gamma = group['metadata'].attrs['gamma']
-                    test_type = group['metadata'].attrs['test_function_type']
-                    
-                    if isinstance(test_type, bytes):
-                        test_type = test_type.decode()
-                    
-                    config_label = f"γ={gamma:.1f} ({test_type})"
-                    
-                    if 'statistical_analysis' in group:
-                        stats = group['statistical_analysis']
-                        c1 = stats.attrs['C1_coefficient']
-                        r2 = stats.attrs['r_squared']
-                        stable = "Yes" if stats.attrs['stability_significant'] else "No"
-                        
-                        report_lines.append(
-                            f"{config_label:<35} {gamma:<12.3f} {c1:<15.6e} {r2:<10.6f} {stable:<8}"
-                        )
-                    else:
-                        report_lines.append(
-                            f"{config_label:<35} {gamma:<12.3f} {'N/A':<15} {'N/A':<10} {'N/A':<8}"
-                        )
-                
-                # Statistical summary
-                report_lines.extend([
-                    "",
-                    "STATISTICAL SUMMARY:",
-                    "-" * 40
-                ])
-                
-                if all_c1 and all(all_significant):
-                    assessment = "STABLE"
-                    riemann_support = "Strong evidence supports Riemann Hypothesis"
-                    significance = "All configurations show C₁ > 0 with high statistical significance"
-                elif all_c1 and any(all_significant):
-                    assessment = "MIXED"
-                    riemann_support = "Partial evidence supports Riemann Hypothesis"
-                    significance = f"{sum(all_significant)}/{len(all_significant)} configurations show stability"
-                else:
-                    assessment = "UNSTABLE"
-                    riemann_support = "Insufficient evidence for Riemann Hypothesis"
-                    significance = "No configurations show statistically significant stability"
-                
-                report_lines.extend([
-                    f"Overall Assessment: {assessment}",
-                    f"Riemann Hypothesis Support: {riemann_support}",
-                    f"Mathematical Significance: {significance}",
-                    ""
-                ])
-                
-                # Experimental details
-                first_config = f[list(f.keys())[0]]
-                delta_range = first_config['metadata'].attrs['delta_range']
-                delta_steps = first_config['metadata'].attrs['delta_steps']
-                num_test_functions = first_config['metadata'].attrs['num_test_functions']
-                
-                report_lines.extend([
-                    "EXPERIMENTAL DETAILS:",
-                    "-" * 40,
-                    "Energy Functional: Single-zero perturbation ΔE(δ) analysis",
-                    f"Test Function Basis: {num_test_functions} functions (Gaussian/Fourier)",
-                    "Statistical Methods: Quadratic fitting, bootstrap CI, hypothesis testing",
-                    f"Perturbation Range: δ ∈ [±{delta_range}]",
-                    f"Sampling Resolution: {delta_steps} points per configuration",
-                    f"Confidence Level: 95%",
-                    ""
-                ])
-                
-                # Write report
-                with open(report_filename, 'w') as f:
-                    f.write('\n'.join(report_lines))
-                    
-                print(f"✓ Summary report generated: {report_filename}")
-                
-        except Exception as e:
-            print(f"✗ Report generation failed: {e}")
+                config_data.append({
+                    'name': config_name,
+                    'gamma': metadata.attrs['gamma'],
+                    'test_function_type': str(metadata.attrs['test_function_type']),
+                    'delta_range': metadata.attrs['delta_range'],
+                    'num_test_functions': metadata.attrs['num_test_functions'],
+                    'delta_steps': metadata.attrs['delta_steps'],
+                    'computation_time': metadata.attrs['computation_time'],
+                    'timestamp': str(metadata.attrs['timestamp']),
+                    'stats': stats_data
+                })
+        
+        # Generate report content
+        with open(report_path, 'w') as f:
+            f.write("EXPERIMENT 1: SINGLE-ZERO PERTURBATION ANALYSIS\n")
+            f.write("=" * 70 + "\n\n")
             
-            # Create minimal report
-            with open(report_filename, 'w') as f:
-                f.write(f"EXPERIMENT 1: Summary Report\n")
-                f.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                f.write(f"Error: Report generation failed - {e}\n")
+            f.write(f"Analysis Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Dataset: {len(config_data)} configurations\n")
+            if config_data:
+                gamma_values = [cfg['gamma'] for cfg in config_data]
+                f.write(f"Parameter Space: γ ∈ [{min(gamma_values):.3f}, {max(gamma_values):.3f}]\n\n")
+            
+            # Stability Analysis Summary
+            f.write("STABILITY ANALYSIS SUMMARY:\n")
+            f.write("-" * 40 + "\n")
+            
+            stable_count = 0
+            c1_values = []
+            r_squared_values = []
+            p_values = []
+            
+            for cfg in config_data:
+                if 'C1_coefficient' in cfg['stats']:
+                    c1_values.append(cfg['stats']['C1_coefficient'])
+                if 'r_squared' in cfg['stats']:
+                    r_squared_values.append(cfg['stats']['r_squared'])
+                if 'p_value_stability' in cfg['stats']:
+                    p_values.append(cfg['stats']['p_value_stability'])
+                    if cfg['stats']['p_value_stability'] < 0.05:
+                        stable_count += 1
+            
+            f.write(f"Total Configurations: {len(config_data)}\n")
+            if c1_values:
+                positive_c1 = sum(1 for c1 in c1_values if c1 > 0)
+                percentage = float(100*positive_c1)/float(len(c1_values))
+                f.write(f"Stable Coefficients (C₁ > 0): {positive_c1} ({percentage:.1f}%)\n")
+                f.write(f"Mean C₁ Coefficient: {float(np.mean(c1_values)):.3e}\n")
+            if r_squared_values:
+                f.write(f"Mean R² (Fit Quality): {float(np.mean(r_squared_values)):.6f}\n")
+            if p_values:
+                significant = sum(1 for p in p_values if p < 0.05)
+                sig_percentage = float(100*significant)/float(len(p_values))
+                f.write(f"Significant Stability (p < 0.05): {significant} ({sig_percentage:.1f}%)\n\n")
+            
+            # Detailed Configuration Results
+            f.write("DETAILED CONFIGURATION RESULTS:\n")
+            f.write("-" * 40 + "\n")
+            f.write(f"{'Config':<30} {'γ':<12} {'Type':<10} {'C₁':<15} {'R²':<10} {'p-value':<10}\n")
+            f.write("-" * 90 + "\n")
+            
+            for cfg in config_data:
+                config_short = cfg['name'].replace('config_', '').replace('_gamma_', 'γ')[:28]
+                gamma = f"{cfg['gamma']:.3f}"
+                func_type = cfg['test_function_type'][:8]
+                
+                c1_str = f"{cfg['stats'].get('C1_coefficient', 0):.3e}" if 'C1_coefficient' in cfg['stats'] else "N/A"
+                r2_str = f"{cfg['stats'].get('r_squared', 0):.6f}" if 'r_squared' in cfg['stats'] else "N/A"
+                p_str = f"{cfg['stats'].get('p_value_stability', 1):.3e}" if 'p_value_stability' in cfg['stats'] else "N/A"
+                
+                f.write(f"{config_short:<30} {gamma:<12} {func_type:<10} {c1_str:<15} {r2_str:<10} {p_str:<10}\n")
+            
+            # Statistical Summary
+            f.write("\nSTATISTICAL SUMMARY:\n")
+            f.write("-" * 40 + "\n")
+            
+            if c1_values and all(c1 > 0 for c1 in c1_values):
+                f.write("Overall Assessment: STABLE\n")
+                f.write("Riemann Hypothesis Support: Energy functional exhibits local stability\n")
+                f.write("Mathematical Significance: C₁ > 0 confirmed across all configurations\n\n")
+            elif c1_values:
+                f.write("Overall Assessment: MIXED\n")
+                f.write("Riemann Hypothesis Support: Partial stability observed\n\n")
+            else:
+                f.write("Overall Assessment: ANALYSIS INCOMPLETE\n\n")
+            
+            # Experimental Details
+            f.write("EXPERIMENTAL DETAILS:\n")
+            f.write("-" * 40 + "\n")
+            f.write("Energy Functional: Single-zero perturbation ΔE(δ) = C₁δ² + C₂δ³ + ...\n")
+            
+            test_functions = set(cfg['test_function_type'] for cfg in config_data)
+            f.write(f"Test Function Basis: {', '.join(test_functions)}\n")
+            f.write("Statistical Methods: Polynomial fitting, bootstrap confidence intervals, hypothesis testing\n")
+            
+            # Generated Files
+            f.write("\nGENERATED FILES:\n")
+            f.write("-" * 20 + "\n")
+            f.write(f"  HDF5 data: {self.hdf5_file}\n")
+            f.write("  Summary images: experiment1_summary_1.png through experiment1_summary_5.png\n")
+            f.write(f"  This report: {report_path}\n\n")
+        
+        print(f"✓ Summary report generated: '{report_path}'")
+        return report_path
 
 # Command line execution
 if len(sys.argv) != 2:
