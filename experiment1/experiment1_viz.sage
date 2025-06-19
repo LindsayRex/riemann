@@ -1265,6 +1265,27 @@ class Experiment1Visualization:
             cross_files = self.generate_cross_configuration_analysis()
             generated_files.extend(cross_files)
             
+            # Generate additional cross-configuration analyses per enhancement plan
+            print(f"\nGenerating statistical models comparison...")
+            filename = self.generate_statistical_models_comparison()
+            if filename:
+                generated_files.append(filename)
+            
+            print(f"\nGenerating hypothesis testing comparison...")
+            filename = self.generate_hypothesis_testing_comparison()
+            if filename:
+                generated_files.append(filename)
+            
+            print(f"\nGenerating bootstrap analysis comparison...")
+            filename = self.generate_bootstrap_analysis_comparison()
+            if filename:
+                generated_files.append(filename)
+            
+            print(f"\nGenerating parameter sensitivity analysis...")
+            filename = self.generate_parameter_sensitivity_analysis()
+            if filename:
+                generated_files.append(filename)
+            
             print(f"\n✅ Generated {len(generated_files)} visualization files:")
             for filename in generated_files:
                 print(f"  📊 {filename}")
@@ -1274,3 +1295,193 @@ class Experiment1Visualization:
         except Exception as e:
             print(f"Error generating visualizations: {e}")
             return []
+        
+    def generate_energy_behavior_analysis(self):
+        """Generate exp1_energy_behavior.png - Cross-configuration energy behavior analysis."""
+        try:
+            with h5py.File(self.hdf5_file, 'r') as f:
+                config_names = [name for name in f.keys() if 'statistics' in f[name]]
+                
+                if len(config_names) == 0:
+                    print("No configurations with statistics found")
+                    return None
+                
+                # Create 2-panel figure
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=self.figsize)
+                fig.suptitle('Cross-Configuration Energy Behavior Analysis', fontsize=14, fontweight='bold')
+                
+                colors = plt.cm.Set1(np.linspace(0, 1, len(config_names)))
+                
+                # Panel 1: Energy vs displacement for all configurations
+                for i, config_name in enumerate(config_names):
+                    config_group = f[config_name]
+                    if 'perturbation_analysis' in config_group:
+                        pert_group = config_group['perturbation_analysis']
+                        delta_values = pert_group['delta'][:]
+                        delta_E_values = pert_group['delta_E'][:]
+                        
+                        # Extract gamma from config name for legend
+                        gamma_str = config_name.split('gamma_')[1].split('_')[0]
+                        gamma = float(gamma_str)
+                        
+                        ax1.scatter(delta_values, delta_E_values, alpha=0.7, s=20, 
+                                  color=colors[i], label=f'γ = {gamma:.1f}')
+                
+                ax1.set_xlabel('Perturbation δ from critical line')
+                ax1.set_ylabel('Energy difference ΔE(δ)')
+                ax1.set_title('Energy vs Displacement (All Configurations)')
+                ax1.legend()
+                ax1.grid(True, alpha=0.3)
+                ax1.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+                ax1.axvline(x=0, color='red', linestyle='--', alpha=0.5)
+                
+                # Panel 2: C1 coefficients vs gamma with error bars
+                gammas = []
+                C1_values = []
+                C1_errors = []
+                
+                for config_name in config_names:
+                    stats_group = f[config_name]['statistics']
+                    
+                    # Extract gamma
+                    gamma_str = config_name.split('gamma_')[1].split('_')[0]
+                    gamma = float(gamma_str)
+                    gammas.append(gamma)
+                    
+                    # Extract C1 coefficient
+                    if 'fitting_results' in stats_group and 'cubic' in stats_group['fitting_results']:
+                        cubic_group = stats_group['fitting_results']['cubic']
+                        C1 = float(cubic_group['C1'][()])
+                        C1_err = float(cubic_group['C1_stderr'][()])
+                        C1_values.append(C1)
+                        C1_errors.append(C1_err)
+                    else:
+                        C1_values.append(0)
+                        C1_errors.append(0)
+                
+                ax2.errorbar(gammas, np.array(C1_values)*1e6, yerr=np.array(C1_errors)*1e6, 
+                           fmt='o-', capsize=5, capthick=2, linewidth=2, markersize=8)
+                ax2.set_xlabel('Gamma (γ)')
+                ax2.set_ylabel('C₁ coefficient (×10⁻⁶)')
+                ax2.set_title('Quadratic Coefficient vs Gamma')
+                ax2.grid(True, alpha=0.3)
+                ax2.axhline(y=0, color='red', linestyle='--', alpha=0.5, label='Stability threshold')
+                ax2.legend()
+                
+                plt.tight_layout()
+                filename = os.path.join(self.output_dir, "exp1_energy_behavior.png")
+                plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
+                plt.close()
+                
+                print(f"📊 Energy behavior analysis saved: {filename}")
+                return filename
+                
+        except Exception as e:
+            print(f"Error generating energy behavior analysis: {e}")
+            return None
+    
+    def generate_hypothesis_testing_analysis(self):
+        """Generate exp1_hypothesis_testing.png - Cross-configuration hypothesis testing analysis."""
+        try:
+            with h5py.File(self.hdf5_file, 'r') as f:
+                config_names = [name for name in f.keys() if 'statistics' in f[name]]
+                
+                if len(config_names) == 0:
+                    print("No configurations with statistics found")
+                    return None
+                
+                # Extract hypothesis testing data
+                gammas = []
+                stability_pvals = []
+                cubic_pvals = []
+                stability_significant = []
+                cubic_significant = []
+                
+                for config_name in config_names:
+                    stats_group = f[config_name]['statistics']
+                    
+                    # Extract gamma
+                    gamma_str = config_name.split('gamma_')[1].split('_')[0]
+                    gamma = float(gamma_str)
+                    gammas.append(gamma)
+                    
+                    # Extract hypothesis testing results
+                    if 'hypothesis_testing' in stats_group:
+                        hyp_group = stats_group['hypothesis_testing']
+                        
+                        if 'local_stability' in hyp_group:
+                            stability_group = hyp_group['local_stability']
+                            p_val = float(stability_group['p_value'][()])
+                            significant = bool(stability_group['significant'][()])
+                            stability_pvals.append(p_val)
+                            stability_significant.append(significant)
+                        else:
+                            stability_pvals.append(1.0)
+                            stability_significant.append(False)
+                        
+                        if 'cubic_significance' in hyp_group:
+                            cubic_group = hyp_group['cubic_significance']
+                            p_val = float(cubic_group['p_value'][()])
+                            significant = bool(cubic_group['significant'][()])
+                            cubic_pvals.append(p_val)
+                            cubic_significant.append(significant)
+                        else:
+                            cubic_pvals.append(1.0)
+                            cubic_significant.append(False)
+                    else:
+                        stability_pvals.append(1.0)
+                        stability_significant.append(False)
+                        cubic_pvals.append(1.0)
+                        cubic_significant.append(False)
+                
+                # Create 2-panel figure
+                fig, (ax1, ax2) = plt.subplots(1, 2, figsize=self.figsize)
+                fig.suptitle('Cross-Configuration Hypothesis Testing Analysis', fontsize=14, fontweight='bold')
+                
+                # Panel 1: Local stability test results
+                colors = ['green' if sig else 'red' for sig in stability_significant]
+                ax1.scatter(gammas, np.log10(stability_pvals), c=colors, s=100, alpha=0.7, edgecolors='black')
+                ax1.set_xlabel('Gamma (γ)')
+                ax1.set_ylabel('log₁₀(p-value)')
+                ax1.set_title('Local Stability Test (C₁ > 0)')
+                ax1.axhline(y=np.log10(0.05), color='red', linestyle='--', alpha=0.7, 
+                          label='Significance threshold (α = 0.05)')
+                ax1.grid(True, alpha=0.3)
+                ax1.legend()
+                
+                # Add annotations for significance
+                for i, (gamma, pval, sig) in enumerate(zip(gammas, stability_pvals, stability_significant)):
+                    status = 'Stable' if sig else 'Unstable'
+                    ax1.annotate(status, (gamma, np.log10(pval)), 
+                               xytext=(5, 5), textcoords='offset points', 
+                               fontsize=8, alpha=0.8)
+                
+                # Panel 2: Cubic term significance test results
+                colors = ['red' if sig else 'green' for sig in cubic_significant]
+                ax2.scatter(gammas, np.log10(cubic_pvals), c=colors, s=100, alpha=0.7, edgecolors='black')
+                ax2.set_xlabel('Gamma (γ)')
+                ax2.set_ylabel('log₁₀(p-value)')
+                ax2.set_title('Cubic Term Significance (C₂ ≠ 0)')
+                ax2.axhline(y=np.log10(0.05), color='red', linestyle='--', alpha=0.7, 
+                          label='Significance threshold (α = 0.05)')
+                ax2.grid(True, alpha=0.3)
+                ax2.legend()
+                
+                # Add annotations
+                for i, (gamma, pval, sig) in enumerate(zip(gammas, cubic_pvals, cubic_significant)):
+                    status = 'Significant' if sig else 'Not Significant'
+                    ax2.annotate(status, (gamma, np.log10(pval)), 
+                               xytext=(5, 5), textcoords='offset points', 
+                               fontsize=8, alpha=0.8)
+                
+                plt.tight_layout()
+                filename = os.path.join(self.output_dir, "exp1_hypothesis_testing.png")
+                plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
+                plt.close()
+                
+                print(f"📊 Hypothesis testing analysis saved: {filename}")
+                return filename
+                
+        except Exception as e:
+            print(f"Error generating hypothesis testing analysis: {e}")
+            return None
