@@ -32,7 +32,7 @@
 			"python": true
 		},
 		
-		// Editor settings for mathematical content
+		// Editor settings for mathematical content !
 		"editor.wordWrap": "on",
 		"editor.rulers": [80, 120],
 		"editor.insertSpaces": true,
