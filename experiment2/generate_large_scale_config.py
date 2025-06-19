@@ -24,19 +24,19 @@ def generate_large_scale_configs():
     """Generate systematic large-scale configuration set"""
     configs = []
     
-    # Get approximations for first 2000 zeros (doubled from 1000)
-    zeros = riemann_zeros_approximation(2000)
+    # Get approximations for first 500 zeros (reasonable scale)
+    zeros = riemann_zeros_approximation(500)
     
-    print(f"Generating massive-scale configurations...")
-    print(f"Zero range: γ₁ ∈ [14.13, {zeros[999]:.2f}], γ₂ ∈ [14.13, {zeros[1999]:.2f}]")
+    print(f"Generating reasonably-scaled configurations...")
+    print(f"Zero range: γ₁ ∈ [14.13, {zeros[249]:.2f}], γ₂ ∈ [14.13, {zeros[499]:.2f}]")
     
     # ===== STRATEGY 1: SEPARATION ANALYSIS =====
     # Study C₁₂ vs |γ₂ - γ₁| systematically
     
     # Small separations: Adjacent and near-adjacent (separation ≤ 20)
     print("Adding small separation pairs...")
-    for i in range(0, 800, 2):  # Every 2nd zero from first 800 (doubled)
-        for sep in [1, 2, 3, 5, 8, 12, 15]:  # More separation patterns
+    for i in range(0, 200, 3):  # Every 3rd zero from first 200
+        for sep in [1, 2, 3, 5, 8]:  # Key separation patterns
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -45,8 +45,8 @@ def generate_large_scale_configs():
     
     # Medium separations: 20 < |γ₂ - γ₁| < 100
     print("Adding medium separation pairs...")
-    for i in range(0, 600, 3):  # Every 3rd zero from first 600 (doubled)
-        for sep in [10, 15, 25, 40, 60, 80, 95]:  # More separations
+    for i in range(0, 150, 4):  # Every 4th zero from first 150
+        for sep in [10, 25, 50, 80]:  # Key medium separations
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -55,8 +55,8 @@ def generate_large_scale_configs():
     
     # Large separations: |γ₂ - γ₁| > 100
     print("Adding large separation pairs...")
-    for i in range(0, 400, 5):  # Every 5th zero from first 400 (doubled)
-        for sep in [100, 150, 250, 400, 600, 800, 1000]:  # More large separations
+    for i in range(0, 100, 6):  # Every 6th zero from first 100
+        for sep in [100, 200, 300]:  # Key large separations
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -68,8 +68,8 @@ def generate_large_scale_configs():
     print("Adding high-γ coverage...")
     
     # High γ₁, various γ₂
-    for i in range(800, 1600, 10):  # High γ₁ values (doubled range)
-        for j in range(i + 1, min(i + 80, 1800), 5):  # More γ₂ values
+    for i in range(200, 400, 15):  # High γ₁ values (reasonable range)
+        for j in range(i + 1, min(i + 30, 450), 8):  # Reasonable γ₂ coverage
             configs.append({
                 "gamma1": zeros[i],
                 "gamma2": zeros[j]
@@ -79,9 +79,9 @@ def generate_large_scale_configs():
     # Systematic grid sampling for uniform coverage
     print("Adding parameter space grid...")
     
-    # Create grid in (γ₁, γ₂) space
-    gamma1_grid = np.linspace(zeros[0], zeros[1000], 40)  # 40 γ₁ values (was 25)
-    gamma2_grid = np.linspace(zeros[0], zeros[1400], 50)  # 50 γ₂ values (was 30)
+    # Create grid in (γ₁, γ₂) space  
+    gamma1_grid = np.linspace(zeros[0], zeros[250], 15)  # 15 γ₁ values (reasonable)
+    gamma2_grid = np.linspace(zeros[0], zeros[350], 20)  # 20 γ₂ values (reasonable)
     
     for g1 in gamma1_grid:
         for g2 in gamma2_grid:
@@ -96,9 +96,9 @@ def generate_large_scale_configs():
     print("Adding random sampling...")
     np.random.seed(42)  # Reproducible
     
-    for _ in range(2000):  # 2000 random pairs (was 800)
-        i = np.random.randint(0, 1200)  # Larger range
-        j = np.random.randint(i + 1, 1800)  # Larger range
+    for _ in range(200):  # 200 random pairs (reasonable)
+        i = np.random.randint(0, 300)  # Reasonable range
+        j = np.random.randint(i + 1, 450)  # Reasonable range
         configs.append({
             "gamma1": zeros[i],
             "gamma2": zeros[j]

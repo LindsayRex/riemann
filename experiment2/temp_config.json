@@ -1,6 +1,6 @@
 {
-  "gamma1": 21.02,
-  "gamma2": 40.91,
+  "gamma1": 43.32,
+  "gamma2": 48.0,
   "delta_range": 0.08,
   "delta_steps": 300,
   "test_function_type": "gaussian",
@@ -8,5 +8,5 @@
   "bootstrap_samples": 25000,
   "confidence_level": 0.95,
   "output_file": "data/experiment2_complete_analysis.h5",
-  "group_name": "config_8_gamma1_21.02_gamma2_40.91"
+  "group_name": "config_22_gamma1_43.32_gamma2_48.0"
 }
