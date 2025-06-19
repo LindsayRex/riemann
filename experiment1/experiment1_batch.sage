@@ -157,17 +157,25 @@ class Experiment1BatchOrchestrator:
         
     def _run_statistical_analysis(self):
         """
-        Execute Layer 3: Statistical Analysis on complete HDF5 dataset.
+        Execute Layer 3: Enhanced Statistical Analysis on complete HDF5 dataset.
         """
-        stats_analyzer = Experiment1Stats(self.hdf5_file)
-        stats_analyzer.process_all_configurations()
+        print("🔬 Running comprehensive statistical analysis...")
+        stats_analyzer = Experiment1Statistics(self.hdf5_file)
+        stats_analyzer.analyze_all_configurations()
+        
+        # Generate comprehensive summary report
+        summary_report_path = "results/exp1_comprehensive_statistical_summary.txt"
+        stats_analyzer.generate_summary_report(summary_report_path)
         
     def _run_visualization_engine(self):
         """
-        Execute Layer 4: Visualization Engine - generate 5 summary images.
+        Execute Layer 4: Enhanced Visualization Engine - generate comprehensive analysis.
         """
-        viz_engine = Experiment1Viz(self.hdf5_file)
-        viz_engine.generate_summary_visualizations()
+        print("📊 Running comprehensive visualization engine...")
+        viz_engine = Experiment1Visualization(self.hdf5_file, output_dir="results")
+        generated_files = viz_engine.generate_all_visualizations()
+        
+        print(f"✅ Generated {len(generated_files)} visualization files")
         
     def _generate_summary_report(self):
         """

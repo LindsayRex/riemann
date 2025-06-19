@@ -560,35 +560,16 @@ class Experiment1Statistics:
             dict: Complete statistical analysis results
         """
         try:
-            with h5py.File(self.hdf5_file, 'a') as f:
+            with h5py.File(self.hdf5_file, 'r') as f:
                 if config_name not in f:
                     print(f"Configuration {config_name} not found in HDF5 file")
                     return None
                 
                 config_group = f[config_name]
-                
-                # Check for different data structure formats
-                if 'delta_values' in config_group and 'delta_E_values' in config_group:
-                    # New format
-                    delta_values = config_group['delta_values'][:]
-                    delta_E_values = config_group['delta_E_values'][:]
-                elif 'perturbation_analysis' in config_group:
-                    # Existing format
-                    pert_group = config_group['perturbation_analysis']
-                    if 'delta' in pert_group and 'delta_E' in pert_group:
-                        delta_values = pert_group['delta'][:]
-                        delta_E_values = pert_group['delta_E'][:]
-                    else:
-                        print(f"Required fields not found in perturbation_analysis for {config_name}")
-                        return None
-                else:
-                    print(f"No suitable data structure found for {config_name}")
-                    return None
+                delta_values = config_group['delta_values'][:]
+                delta_E_values = config_group['delta_E_values'][:]
                 
                 print(f"Analyzing configuration: {config_name}")
-                print(f"  Data points: {len(delta_values)}")
-                print(f"  Delta range: [{delta_values.min():.6f}, {delta_values.max():.6f}]")
-                print(f"  Energy range: [{delta_E_values.min():.6e}, {delta_E_values.max():.6e}]")
                 
                 # Perform comprehensive analysis
                 analysis_results = self.comprehensive_analysis(delta_values, delta_E_values)

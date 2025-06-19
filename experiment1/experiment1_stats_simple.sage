@@ -11,37 +11,34 @@
 # - Bootstrap resampling for robust uncertainty quantification
 # - Residual analysis and model validation
 # - Publication-quality statistical reporting
-# - HDF5 data storage integration
 #
 # ############################################################################
 
-import h5py
 import numpy as np
 import csv
 import time
+import h5py
 from scipy import stats as scipy_stats
 from scipy.optimize import curve_fit
 from sage.all import *
+import h5py
 
 class Experiment1Statistics:
-    """Statistical analysis module for single-zero perturbation experiment with HDF5 support."""
+    """Statistical analysis module for single-zero perturbation experiment."""
     
-    def __init__(self, hdf5_file, confidence_level=0.95, bootstrap_samples=10000):
+    def __init__(self, confidence_level=0.95, bootstrap_samples=10000):
         """
         Initialize statistical analysis module.
         
         Args:
-            hdf5_file: Path to HDF5 data file
             confidence_level: Confidence level for intervals and tests
             bootstrap_samples: Number of bootstrap resamples for uncertainty
         """
-        self.hdf5_file = hdf5_file
         self.confidence_level = confidence_level
         self.alpha = 1 - confidence_level
         self.bootstrap_samples = bootstrap_samples
         
         print(f"Experiment 1 Statistics initialized:")
-        print(f"  HDF5 file: {hdf5_file}")
         print(f"  Confidence level: {confidence_level*100}%")
         print(f"  Bootstrap samples: {bootstrap_samples}")
     
@@ -346,7 +343,6 @@ class Experiment1Statistics:
             cubic_fit = fitting_results['cubic']
             C2 = cubic_fit['C2']
             C2_stderr = cubic_fit['C2_stderr']
-            df = len(cubic_fit['residuals']) - 2
             
             # Two-sided t-test for C₂ ≠ 0
             t_statistic_C2 = C2 / C2_stderr
@@ -549,118 +545,6 @@ class Experiment1Statistics:
         
         return best_model_info
     
-    def analyze_configuration(self, config_name):
-        """
-        Perform comprehensive statistical analysis for a single configuration.
-        
-        Args:
-            config_name: Name of configuration to analyze
-            
-        Returns:
-            dict: Complete statistical analysis results
-        """
-        try:
-            with h5py.File(self.hdf5_file, 'a') as f:
-                if config_name not in f:
-                    print(f"Configuration {config_name} not found in HDF5 file")
-                    return None
-                
-                config_group = f[config_name]
-                
-                # Check for different data structure formats
-                if 'delta_values' in config_group and 'delta_E_values' in config_group:
-                    # New format
-                    delta_values = config_group['delta_values'][:]
-                    delta_E_values = config_group['delta_E_values'][:]
-                elif 'perturbation_analysis' in config_group:
-                    # Existing format
-                    pert_group = config_group['perturbation_analysis']
-                    if 'delta' in pert_group and 'delta_E' in pert_group:
-                        delta_values = pert_group['delta'][:]
-                        delta_E_values = pert_group['delta_E'][:]
-                    else:
-                        print(f"Required fields not found in perturbation_analysis for {config_name}")
-                        return None
-                else:
-                    print(f"No suitable data structure found for {config_name}")
-                    return None
-                
-                print(f"Analyzing configuration: {config_name}")
-                print(f"  Data points: {len(delta_values)}")
-                print(f"  Delta range: [{delta_values.min():.6f}, {delta_values.max():.6f}]")
-                print(f"  Energy range: [{delta_E_values.min():.6e}, {delta_E_values.max():.6e}]")
-                
-                # Perform comprehensive analysis
-                analysis_results = self.comprehensive_analysis(delta_values, delta_E_values)
-                
-                # Store results back to HDF5
-                self._store_stats_to_hdf5(config_name, analysis_results)
-                
-                return analysis_results
-                
-        except Exception as e:
-            print(f"Error analyzing configuration {config_name}: {e}")
-            return None
-    
-    def _store_stats_to_hdf5(self, config_name, analysis_results):
-        """Store comprehensive statistical results to HDF5 file."""
-        try:
-            with h5py.File(self.hdf5_file, 'a') as f:
-                config_group = f[config_name]
-                
-                # Create or update statistics subgroup
-                if 'statistics' in config_group:
-                    del config_group['statistics']
-                
-                stats_group = config_group.create_group('statistics')
-                
-                # Store fitting results
-                if 'fitting_results' in analysis_results:
-                    fitting_group = stats_group.create_group('fitting_results')
-                    for model_name, fit_result in analysis_results['fitting_results'].items():
-                        if fit_result is not None:
-                            model_group = fitting_group.create_group(model_name)
-                            for key, value in fit_result.items():
-                                if isinstance(value, (int, float, np.number)):
-                                    model_group.create_dataset(key, data=value)
-                                elif isinstance(value, np.ndarray):
-                                    model_group.create_dataset(key, data=value)
-                
-                # Store hypothesis testing results
-                if 'hypothesis_testing' in analysis_results:
-                    hyp_group = stats_group.create_group('hypothesis_testing')
-                    for test_name, test_result in analysis_results['hypothesis_testing'].items():
-                        test_subgroup = hyp_group.create_group(test_name)
-                        for key, value in test_result.items():
-                            if isinstance(value, (int, float, bool, np.number)):
-                                test_subgroup.create_dataset(key, data=value)
-                            elif isinstance(value, str):
-                                test_subgroup.create_dataset(key, data=value.encode('utf-8'))
-                            elif isinstance(value, list):
-                                test_subgroup.create_dataset(key, data=np.array(value))
-                
-                # Store bootstrap results
-                if 'bootstrap_analysis' in analysis_results and analysis_results['bootstrap_analysis'] is not None:
-                    bootstrap_group = stats_group.create_group('bootstrap_analysis')
-                    bootstrap_stats = analysis_results['bootstrap_analysis']
-                    for param_name, param_stats in bootstrap_stats.items():
-                        if isinstance(param_stats, dict):
-                            param_group = bootstrap_group.create_group(param_name)
-                            for key, value in param_stats.items():
-                                if isinstance(value, (int, float, np.number)):
-                                    param_group.create_dataset(key, data=value)
-                                elif isinstance(value, np.ndarray):
-                                    param_group.create_dataset(key, data=value)
-                        else:
-                            bootstrap_group.create_dataset(param_name, data=param_stats)
-                
-                # Store timestamp and other metadata
-                stats_group.create_dataset('analysis_time', data=analysis_results.get('analysis_time', 0))
-                stats_group.create_dataset('timestamp', data=analysis_results.get('timestamp', '').encode('utf-8'))
-                
-        except Exception as e:
-            print(f"Warning: Could not store statistics to HDF5: {e}")
-    
     def print_detailed_report(self, analysis_results):
         """
         Print comprehensive statistical report to console.
@@ -716,145 +600,262 @@ class Experiment1Statistics:
             print(f"    p-value: {cubic['p_value']:.6f}")
             print(f"    Result: {'SIGNIFICANT' if cubic['significant'] else 'NOT SIGNIFICANT'}")
         
-        if 'bootstrap_stability' in hyp_tests:
-            bootstrap = hyp_tests['bootstrap_stability']
-            print(f"  BOOTSTRAP STABILITY TEST:")
-            print(f"    Fraction C₁ > 0: {bootstrap['fraction_positive']:.4f}")
-            print(f"    Bootstrap mean: {bootstrap['C1_bootstrap_mean']:.6e}")
-            print(f"    95% CI: [{bootstrap['C1_bootstrap_ci'][0]:.6e}, {bootstrap['C1_bootstrap_ci'][1]:.6e}]")
-            print(f"    Result: {'STABLE' if bootstrap['significant'] else 'INCONCLUSIVE'}")
+        # Bootstrap results
+        bootstrap_stats = analysis_results['bootstrap_analysis']
+        if bootstrap_stats is not None:
+            print("\nBOOTSTRAP ANALYSIS:")
+            print("-" * 20)
+            print(f"  Successful samples: {bootstrap_stats['successful_samples']}")
+            
+            if 'C1' in bootstrap_stats:
+                c1_stats = bootstrap_stats['C1']
+                print(f"  C₁ bootstrap mean: {c1_stats['mean']:.6e}")
+                print(f"  C₁ {self.confidence_level*100}% CI: [{c1_stats['ci_lower']:.2e}, {c1_stats['ci_upper']:.2e}]")
         
         # Best model
         if 'best_model' in analysis_results and analysis_results['best_model'] is not None:
             best = analysis_results['best_model']
-            print(f"\nBEST MODEL SELECTION:")
-            print(f"  Selected: {best['model_name'].upper()}")
+            print(f"\nBEST MODEL: {best['model_name'].upper()}")
             print(f"  AIC: {best['aic']:.2f}")
             print(f"  R²: {best['r_squared']:.6f}")
+    
+    def export_statistical_results_csv(self, analysis_results, filename="experiment1_stats_results.csv"):
+        """
+        Export statistical analysis results to CSV format.
         
-        print("\n" + "="*80)
-    
-    def generate_summary_report(self, output_file):
-        """Generate comprehensive summary report for all configurations."""
-        try:
-            with h5py.File(self.hdf5_file, 'r') as f:
-                config_names = list(f.keys())
-                
-                with open(output_file, 'w') as report:
-                    report.write("EXPERIMENT 1: COMPREHENSIVE STATISTICAL ANALYSIS SUMMARY\n")
-                    report.write("=" * 70 + "\n\n")
-                    report.write(f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-                    report.write(f"Total configurations: {len(config_names)}\n\n")
-                    
-                    # Summary table header
-                    report.write("CONFIGURATION SUMMARY\n")
-                    report.write("-" * 50 + "\n")
-                    report.write(f"{'Config':<20} {'C₁ (x10⁻⁶)':<15} {'C₂ (x10⁻⁹)':<15} {'R²':<10} {'Status':<15}\n")
-                    report.write("-" * 75 + "\n")
-                    
-                    for config_name in config_names:
-                        if 'statistics' in f[config_name]:
-                            stats_group = f[config_name]['statistics']
-                            
-                            # Extract key results
-                            if 'fitting_results' in stats_group and 'cubic' in stats_group['fitting_results']:
-                                cubic_group = stats_group['fitting_results']['cubic']
-                                C1 = float(cubic_group['C1'][()])
-                                C2 = float(cubic_group['C2'][()])
-                                R2 = float(cubic_group['r_squared'][()])
-                                
-                                # Check stability
-                                status = "Unknown"
-                                if 'hypothesis_testing' in stats_group and 'local_stability' in stats_group['hypothesis_testing']:
-                                    stability_group = stats_group['hypothesis_testing']['local_stability']
-                                    is_significant = bool(stability_group['significant'][()])
-                                    status = "Stable" if is_significant else "Unstable"
-                                
-                                report.write(f"{config_name:<20} {C1*1e6:<15.3f} {C2*1e9:<15.3f} {R2:<10.6f} {status:<15}\n")
-                            else:
-                                report.write(f"{config_name:<20} {'N/A':<15} {'N/A':<15} {'N/A':<10} {'Failed':<15}\n")
-                        else:
-                            report.write(f"{config_name:<20} {'N/A':<15} {'N/A':<15} {'N/A':<10} {'No Stats':<15}\n")
-                    
-                    report.write("\n\nDETAILED ANALYSIS BY CONFIGURATION\n")
-                    report.write("=" * 50 + "\n\n")
-                    
-                    for config_name in config_names:
-                        report.write(f"Configuration: {config_name}\n")
-                        report.write("-" * (len(config_name) + 15) + "\n")
-                        
-                        if 'statistics' in f[config_name]:
-                            stats_group = f[config_name]['statistics']
-                            
-                            # Fitting results
-                            if 'fitting_results' in stats_group:
-                                report.write("Polynomial Fitting Results:\n")
-                                fitting_group = stats_group['fitting_results']
-                                
-                                for model_name in ['quadratic', 'cubic', 'quartic']:
-                                    if model_name in fitting_group:
-                                        model_group = fitting_group[model_name]
-                                        R2 = float(model_group['r_squared'][()])
-                                        AIC = float(model_group['aic'][()])
-                                        report.write(f"  {model_name.capitalize()}: R² = {R2:.6f}, AIC = {AIC:.2f}\n")
-                                        
-                                        if model_name == 'cubic':
-                                            C1 = float(model_group['C1'][()])
-                                            C2 = float(model_group['C2'][()])
-                                            C1_err = float(model_group['C1_stderr'][()])
-                                            C2_err = float(model_group['C2_stderr'][()])
-                                            report.write(f"    C₁ = {C1:.6e} ± {C1_err:.2e}\n")
-                                            report.write(f"    C₂ = {C2:.6e} ± {C2_err:.2e}\n")
-                                
-                                report.write("\n")
-                            
-                            # Hypothesis testing
-                            if 'hypothesis_testing' in stats_group:
-                                report.write("Hypothesis Testing:\n")
-                                hyp_group = stats_group['hypothesis_testing']
-                                
-                                if 'local_stability' in hyp_group:
-                                    stability_group = hyp_group['local_stability']
-                                    t_stat = float(stability_group['test_statistic'][()])
-                                    p_val = float(stability_group['p_value'][()])
-                                    significant = bool(stability_group['significant'][()])
-                                    
-                                    report.write(f"  Local Stability (C₁ > 0): t = {t_stat:.4f}, p = {p_val:.6f}")
-                                    report.write(f" -> {'STABLE' if significant else 'INCONCLUSIVE'}\n")
-                                
-                                if 'cubic_significance' in hyp_group:
-                                    cubic_group = hyp_group['cubic_significance']
-                                    t_stat = float(cubic_group['test_statistic'][()])
-                                    p_val = float(cubic_group['p_value'][()])
-                                    significant = bool(cubic_group['significant'][()])
-                                    
-                                    report.write(f"  Cubic Term (C₂ ≠ 0): t = {t_stat:.4f}, p = {p_val:.6f}")
-                                    report.write(f" -> {'SIGNIFICANT' if significant else 'NOT SIGNIFICANT'}\n")
-                                
-                                report.write("\n")
-                        else:
-                            report.write("  No statistical analysis available\n\n")
-                        
-                        report.write("\n")
-                    
-                    print(f"Comprehensive summary report written to: {output_file}")
-                        
-        except Exception as e:
-            print(f"Error generating summary report: {e}")
-    
-    def analyze_all_configurations(self):
-        """Analyze all configurations in the HDF5 file."""
-        try:
-            with h5py.File(self.hdf5_file, 'r') as f:
-                config_names = list(f.keys())
-                
-            print(f"Found {len(config_names)} configurations to analyze")
+        Args:
+            analysis_results: Results from comprehensive_analysis()
+            filename: Output CSV filename
             
+        Returns:
+            str: Filename of saved CSV
+        """
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            
+            # Header
+            writer.writerow(['# Experiment 1: Statistical Analysis Results'])
+            writer.writerow(['# Timestamp:', analysis_results['timestamp']])
+            writer.writerow([])
+            
+            # Model fitting results
+            writer.writerow(['# POLYNOMIAL MODEL FITTING'])
+            writer.writerow(['Model', 'R_squared', 'AIC', 'C1', 'C1_stderr', 'C2', 'C2_stderr', 'C3', 'C3_stderr'])
+            
+            fitting_results = analysis_results['fitting_results']
+            for model_name, fit_result in fitting_results.items():
+                if fit_result is None:
+                    continue
+                    
+                row = [model_name, fit_result['r_squared'], fit_result['aic']]
+                
+                # Add coefficients based on model type
+                if 'C1' in fit_result:
+                    row.extend([fit_result['C1'], fit_result['C1_stderr']])
+                else:
+                    row.extend(['', ''])
+                
+                if 'C2' in fit_result:
+                    row.extend([fit_result['C2'], fit_result['C2_stderr']])
+                else:
+                    row.extend(['', ''])
+                    
+                if 'C3' in fit_result:
+                    row.extend([fit_result['C3'], fit_result['C3_stderr']])
+                else:
+                    row.extend(['', ''])
+                
+                writer.writerow(row)
+            
+            writer.writerow([])
+            
+            # Hypothesis testing results
+            writer.writerow(['# HYPOTHESIS TESTING'])
+            hyp_tests = analysis_results['hypothesis_testing']
+            
+            for test_name, test_result in hyp_tests.items():
+                writer.writerow([f'# {test_name.upper()}'])
+                for key, value in test_result.items():
+                    writer.writerow([key, value])
+                writer.writerow([])
+        
+        print(f"✓ Statistical results exported to: '{filename}'")
+        return filename
+
+# ############################################################################
+# HDF5 INTEGRATION FOR BATCH ORCHESTRATOR
+# ############################################################################
+
+class Experiment1Stats:
+    """
+    HDF5-compatible wrapper for statistical analysis.
+    Implements the interface expected by the batch orchestrator.
+    """
+    
+    def __init__(self, hdf5_file):
+        """
+        Initialize statistical analyzer for HDF5 data.
+        
+        Args:
+            hdf5_file: Path to HDF5 file containing experiment data
+        """
+        self.hdf5_file = hdf5_file
+        self.stats_engine = Experiment1Statistics(confidence_level=0.95, bootstrap_samples=1000)
+        
+        print(f"📊 Experiment1Stats initialized for: {hdf5_file}")
+        
+    def process_all_configurations(self):
+        """
+        Process statistical analysis for all configurations in HDF5 file.
+        Implements the Design Guide cross-configuration analysis pattern.
+        """
+        print("🔍 Processing statistical analysis for all configurations...")
+        
+        with h5py.File(self.hdf5_file, 'a') as f:
+            config_names = list(f.keys())
+            total_configs = len(config_names)
+            
+            print(f"Found {total_configs} configurations to analyze")
+            
+            # Process each configuration
             for i, config_name in enumerate(config_names):
-                print(f"\n[{i+1}/{len(config_names)}] Processing {config_name}...")
-                self.analyze_configuration(config_name)
+                print(f"  Processing {i+1}/{total_configs}: {config_name}")
+                
+                try:
+                    # Read data from HDF5
+                    config_group = f[config_name]
+                    analysis_group = config_group['perturbation_analysis']
+                    
+                    delta_values = analysis_group['delta'][:]
+                    delta_E_values = analysis_group['delta_E'][:]
+                    
+                    # Run statistical analysis
+                    results = self._analyze_configuration(delta_values, delta_E_values)
+                    
+                    # Write statistical results back to HDF5
+                    self._write_stats_to_hdf5(config_group, results)
+                    
+                    print(f"    ✓ Statistical analysis completed")
+                    
+                except Exception as e:
+                    print(f"    ✗ Analysis failed: {e}")
+                    continue
+                    
+            print(f"✅ Statistical analysis completed for all configurations")
             
-            print(f"\nCompleted analysis of all {len(config_names)} configurations")
+    def _analyze_configuration(self, delta_values, delta_E_values):
+        """
+        Run statistical analysis for a single configuration.
+        
+        Args:
+            delta_values: Perturbation values
+            delta_E_values: Energy changes
+            
+        Returns:
+            dict: Statistical analysis results
+        """
+        # Convert to proper arrays
+        delta_array = np.array(delta_values, dtype=np.float64)
+        delta_E_array = np.array(delta_E_values, dtype=np.float64)
+        
+        # Use existing statistical methods
+        results = {}
+        
+        try:
+            # Quadratic fitting: ΔE = C₁δ²
+            popt, pcov = curve_fit(
+                lambda x, c1: c1 * x**2,
+                delta_array,
+                delta_E_array
+            )
+            
+            C1_fitted = popt[0]
+            C1_stderr = np.sqrt(pcov[0, 0]) if pcov.size > 0 else 0.0
+            
+            # R-squared calculation
+            y_pred = C1_fitted * delta_array**2
+            ss_res = np.sum((delta_E_array - y_pred)**2)
+            ss_tot = np.sum((delta_E_array - np.mean(delta_E_array))**2)
+            r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
+            
+            # Bootstrap confidence intervals
+            bootstrap_c1 = []
+            for _ in range(100):  # Reduced for speed
+                indices = np.random.choice(len(delta_array), len(delta_array), replace=True)
+                delta_boot = delta_array[indices]
+                delta_E_boot = delta_E_array[indices]
+                
+                try:
+                    popt_boot, _ = curve_fit(
+                        lambda x, c1: c1 * x**2,
+                        delta_boot,
+                        delta_E_boot
+                    )
+                    bootstrap_c1.append(popt_boot[0])
+                except:
+                    continue
+                    
+            if bootstrap_c1:
+                ci_lower = np.percentile(bootstrap_c1, 2.5)
+                ci_upper = np.percentile(bootstrap_c1, 97.5)
+            else:
+                ci_lower = ci_upper = C1_fitted
+            
+            # Stability test: H₀: C₁ > 0
+            t_stat = C1_fitted / C1_stderr if C1_stderr > 0 else 0
+            p_value = 1 - scipy_stats.t.cdf(t_stat, len(delta_array) - 1)
+            
+            results = {
+                'C1_coefficient': float(C1_fitted),
+                'C1_stderr': float(C1_stderr),
+                'C1_ci_lower': float(ci_lower),
+                'C1_ci_upper': float(ci_upper),
+                'r_squared': float(r_squared),
+                'stability_p_value': float(p_value),
+                'stability_significant': bool(p_value < 0.05),
+                'num_data_points': int(len(delta_array))
+            }
             
         except Exception as e:
-            print(f"Error analyzing all configurations: {e}")
+            print(f"      Warning: Statistical fitting failed: {e}")
+            results = {
+                'C1_coefficient': 0.0,
+                'C1_stderr': 0.0,
+                'C1_ci_lower': 0.0,
+                'C1_ci_upper': 0.0,
+                'r_squared': 0.0,
+                'stability_p_value': 1.0,
+                'stability_significant': False,
+                'num_data_points': int(len(delta_array))
+            }
+            
+        return results
+        
+    def _write_stats_to_hdf5(self, config_group, stats_results):
+        """
+        Write statistical results to HDF5 group.
+        
+        Args:
+            config_group: HDF5 group for this configuration
+            stats_results: Statistical analysis results
+        """
+        # Create or update statistical_analysis subgroup
+        if 'statistical_analysis' in config_group:
+            del config_group['statistical_analysis']
+            
+        stats_group = config_group.create_group('statistical_analysis')
+        
+        # Store statistical results as attributes
+        for key, value in stats_results.items():
+            stats_group.attrs[key] = value
+            
+        # Store polynomial coefficients as dataset
+        coeffs = np.array([stats_results['C1_coefficient']], dtype=np.float64)
+        stats_group.create_dataset('polyfit_coeffs', data=coeffs)
+        
+        # Store bootstrap confidence intervals
+        ci_data = np.array([
+            stats_results['C1_ci_lower'],
+            stats_results['C1_ci_upper']
+        ], dtype=np.float64)
+        stats_group.create_dataset('bootstrap_CI', data=ci_data)

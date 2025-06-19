@@ -1,34 +1,29 @@
 EXPERIMENT 1: SINGLE-ZERO PERTURBATION ANALYSIS
 ======================================================================
 
-Analysis Timestamp: 2025-06-19 13:12:42
+Analysis Timestamp: 2025-06-19 13:56:11
 Dataset: 3 configurations
 Parameter Space: γ ∈ [14.135, 25.011]
 
 STABILITY ANALYSIS SUMMARY:
 ----------------------------------------
 Total Configurations: 3
-Stable Coefficients (C₁ > 0): 3 (100.0%)
-Mean C₁ Coefficient: 1.402e+02
-Mean R² (Fit Quality): 1.000000
 DETAILED CONFIGURATION RESULTS:
 ----------------------------------------
 Config                         γ            Type       C₁              R²         p-value   
 ------------------------------------------------------------------------------------------
-1γ14_134725141734693_gaussia   14.135       gaussian   1.402e+02       1.000000   N/A       
-2γ21_022039638771552_gaussia   21.022       gaussian   1.402e+02       1.000000   N/A       
-3γ25_01085758014569_fourier    25.011       fourier    1.402e+02       1.000000   N/A       
+1γ14_134725141734693_gaussia   14.135       gaussian   N/A             N/A        N/A       
+2γ21_022039638771552_gaussia   21.022       gaussian   N/A             N/A        N/A       
+3γ25_01085758014569_fourier    25.011       fourier    N/A             N/A        N/A       
 
 STATISTICAL SUMMARY:
 ----------------------------------------
-Overall Assessment: STABLE
-Riemann Hypothesis Support: Energy functional exhibits local stability
-Mathematical Significance: C₁ > 0 confirmed across all configurations
+Overall Assessment: ANALYSIS INCOMPLETE
 
 EXPERIMENTAL DETAILS:
 ----------------------------------------
 Energy Functional: Single-zero perturbation ΔE(δ) = C₁δ² + C₂δ³ + ...
-Test Function Basis: gaussian, fourier
+Test Function Basis: fourier, gaussian
 Statistical Methods: Polynomial fitting, bootstrap confidence intervals, hypothesis testing
 
 GENERATED FILES:

@@ -1,0 +1,10 @@
+EXPERIMENT 1: COMPREHENSIVE STATISTICAL ANALYSIS SUMMARY
+======================================================================
+
+Generated: 2025-06-19 13:56:05
+Total configurations: 3
+
+CONFIGURATION SUMMARY
+--------------------------------------------------
+Config               C₁ (x10⁻⁶)      C₂ (x10⁻⁹)      R²         Status         
+---------------------------------------------------------------------------
