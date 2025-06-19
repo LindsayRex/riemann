@@ -113,22 +113,6 @@ The provided `environment.yml` file will install all necessary dependencies.
 - **Comprehensive Analysis:** See `analysis/` folder for combined analysis across all experiments
 - **Report Generation:** Use `analysis/generate_universal_critical_restoration_report.py` to generate full research report
 
-## Key Findings
-
-The experiments provide computational evidence that:
-
-### Experiment 1 (Single-Zero Perturbation) - VALIDATED ✅
-- **Perfect quadratic energy scaling:** ΔE(δ) = C₁δ² + C₂δ³ with C₁ > 0 universally
-- **Strong statistical significance:** All configurations show p < 0.001 for positive C₁ 
-- **Excellent model fit quality:** R² > 0.999999 across all zero heights and test functions
-- **Universal stability coefficient:** C₁ ranges from ~14 to ~140 depending on configuration
-- **Robust across parameter space:** Validated for γ ∈ [14, 25], Gaussian and Fourier test functions
-- **Precision independence:** Results consistent across standard, medium, and ultra-high precision
-
-### Experiment 2 & 3 (Preliminary Results)
-- Energy changes follow quadratic scaling ΔE(δ) ≈ C₁δ² with C₁ > 0
-- Restoring forces scale with system size  
-- Universal stability holds across tested zero heights
 
 ## File Structure
 

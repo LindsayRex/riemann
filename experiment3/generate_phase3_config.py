@@ -157,38 +157,35 @@ def main():
     print(f"Generated pool of {len(gamma_pool)} zeros")
     print(f"Range: γ ∈ [{gamma_pool[0]:.3f}, {gamma_pool[-1]:.3f}]")
     
-    # Define zero counts for comprehensive scaling analysis
-    zero_counts = [10, 20, 50, 100, 200, 500]
+    # Define zero counts for comprehensive scaling analysis (reasonably sized)
+    zero_counts = [5, 10, 15, 25, 50, 100]
     
-    # Calculate configurations per count to reach ~3000 total
-    total_target = 3000
-    uniform_weight = 0.8  # 80% uniform, 20% random
-    
+    # Calculate configurations per count for 1-2 hour runtime (~200-400 total configs)
     configs_per_count = [
-        150,  # N=10:  150 configs
-        100,  # N=20:  100 configs  
-        60,   # N=50:  60 configs
-        40,   # N=100: 40 configs
-        25,   # N=200: 25 configs
-        15    # N=500: 15 configs
+        50,   # N=5:   50 configs 
+        40,   # N=10:  40 configs
+        30,   # N=15:  30 configs  
+        25,   # N=25:  25 configs
+        15,   # N=50:  15 configs
+        10    # N=100: 10 configs
     ]
     
     total_expected = sum(configs_per_count) * 1.25  # +25% for random configs
-    print(f"Expected total configurations: ~{total_expected:.0f}")
+    print(f"Expected total configurations: ~{total_expected:.0f} (1-2 hour runtime)")
     
     # Generate all configurations
     configurations = generate_zero_configurations(zero_counts, gamma_pool, configs_per_count)
     
     # Create the configuration dictionary
     config_dict = {
-        "description": "Experiment 3 Phase 3: Publication-Quality Multi-Zero Scaling Analysis",
+        "description": "Experiment 3 Phase 3: Scaled Multi-Zero Analysis (1-2 hour runtime)",
         "delta_range": 0.05,
-        "delta_steps": 51,
+        "delta_steps": 500,  # Scaled up from 51 for higher precision
         "test_function_type": "gaussian", 
-        "num_test_functions": 35,
+        "num_test_functions": 200,  # Scaled up from 35 for better approximation
         "confidence_level": 0.95,
-        "bootstrap_samples": 15000,
-        "output_file": "data/experiment3_phase3_multi_zero_analysis.h5",
+        "bootstrap_samples": 50000,  # Scaled up from 15k for robust statistics
+        "output_file": "data/experiment3_phase3_scaled_analysis.h5",
         "verbose": True,
         "phase": 3,
         "statistics": {
@@ -199,19 +196,18 @@ def main():
             "total_zeros_in_pool": len(gamma_pool)
         },
         "comments": {
-            "purpose": "Publication-quality large-scale multi-zero scaling analysis",
-            "zero_counts": "N = 10, 20, 50, 100, 200, 500 for comprehensive scaling law",
+            "purpose": "Scaled multi-zero scaling analysis for 1-2 hour runtime",
+            "zero_counts": "N = 5, 10, 15, 25, 50, 100 for comprehensive scaling law",
             "gamma_ranges": "Systematic sampling from first 1000 zeros across low/mid/high ranges",
-            "configurations": f"{len(configurations)} total configs for statistical robustness matching Experiment 2",
-            "precision": "High precision matching Experiment 1 standards (51 δ points, 35 test functions)",
-            "bootstrap": "15000 samples for publication-quality confidence intervals",
+            "configurations": f"{len(configurations)} total configs for 1-2 hour computational analysis",
+            "precision": "High precision (500 δ points, 200 test functions, 50k bootstrap)",
             "scaling_objective": "Test C₁^(N) ∝ N scaling law and additivity hypothesis"
         },
         "batch_configs": configurations
     }
     
     # Write to file
-    output_file = "/home/rexl1/riemann/experiment3/experiment3_config_phase3_full.json"
+    output_file = "/home/rexl1/riemann/experiment3/experiment3_config_phase3_scaled.json"
     with open(output_file, 'w') as f:
         json.dump(config_dict, f, indent=2)
     

@@ -1032,9 +1032,9 @@ class Experiment1Visualization:
                     
                     if 'bootstrap_analysis' in stats_group and 'C1' in stats_group['bootstrap_analysis']:
                         C1_group = stats_group['bootstrap_analysis']['C1']
-                        C1_means.append(float(C1_group['mean'][()]) * 1e6)
-                        C1_ci_lower.append(float(C1_group['ci_lower'][()]) * 1e6)
-                        C1_ci_upper.append(float(C1_group['ci_upper'][()]) * 1e6)
+                        C1_means.append(float(C1_group['mean'][()].item()) * 1e6)
+                        C1_ci_lower.append(float(C1_group['ci_lower'][()].item()) * 1e6)
+                        C1_ci_upper.append(float(C1_group['ci_upper'][()].item()) * 1e6)
                     else:
                         C1_means.append(0)
                         C1_ci_lower.append(0)

@@ -89,17 +89,35 @@ class Experiment3Viz:
         
         colors = plt.cm.viridis(np.linspace(0, 1, len(uniform_data)))
         
+        # Determine which N values to show in legend (limit to 8 items max)
+        sorted_data = sorted(uniform_data, key=lambda x: x['zero_count'])
+        max_legend_items = 8
+        
+        if len(sorted_data) <= max_legend_items:
+            legend_indices = range(len(sorted_data))
+        else:
+            legend_indices = [0]  # Always include first
+            step = len(sorted_data) // (max_legend_items - 2)
+            legend_indices.extend(range(step, len(sorted_data) - step, step))
+            legend_indices.append(len(sorted_data) - 1)  # Always include last
+            legend_indices = sorted(set(legend_indices))
+        
         # Left plot: Energy curves
-        for i, data in enumerate(sorted(uniform_data, key=lambda x: x['zero_count'])):
+        for i, data in enumerate(sorted_data):
             delta = data['delta']
             delta_E = data['delta_E']
             N = data['zero_count']
             c1 = data['c1']
             c3 = data['c3']
             
+            # Only add label for key N values
+            if i in legend_indices:
+                label = f'N={N} (C₁={c1:.1e})'
+            else:
+                label = None
+            
             # Plot data
-            ax1.plot(delta, delta_E, 'o', color=colors[i], markersize=4, alpha=0.7, 
-                    label=f'N={N} (C₁={c1:.1e})')
+            ax1.plot(delta, delta_E, 'o', color=colors[i], markersize=4, alpha=0.7, label=label)
             
             # Plot fit
             delta_fit = np.linspace(delta.min(), delta.max(), 100)
@@ -113,13 +131,18 @@ class Experiment3Viz:
         ax1.grid(True, alpha=0.3)
         
         # Right plot: Quadratic scaling (ΔE vs δ²)
-        for i, data in enumerate(sorted(uniform_data, key=lambda x: x['zero_count'])):
+        for i, data in enumerate(sorted_data):
             delta = data['delta']
             delta_E = data['delta_E']
             N = data['zero_count']
             
-            ax2.plot(delta**2, delta_E, 'o', color=colors[i], markersize=4, alpha=0.7, 
-                    label=f'N={N}')
+            # Only add label for key N values
+            if i in legend_indices:
+                label = f'N={N}'
+            else:
+                label = None
+            
+            ax2.plot(delta**2, delta_E, 'o', color=colors[i], markersize=4, alpha=0.7, label=label)
         
         ax2.set_title('Quadratic Scaling Validation', fontsize=14, fontweight='bold')
         ax2.set_xlabel('δ²', fontsize=12)
@@ -201,15 +224,35 @@ class Experiment3Viz:
         colors = plt.cm.plasma(np.linspace(0, 1, len(random_data)))
         
         # Left plot: ΔE vs Σδⱼ² for different N
-        for i, data in enumerate(sorted(random_data, key=lambda x: x['zero_count'])):
+        # Only show legend labels for key N values to avoid overcrowding
+        sorted_data = sorted(random_data, key=lambda x: x['zero_count'])
+        max_legend_items = 8  # Limit legend to 8 items max
+        
+        if len(sorted_data) <= max_legend_items:
+            # Show all if we have few items
+            legend_indices = range(len(sorted_data))
+        else:
+            # Show evenly spaced key values including first and last
+            legend_indices = [0]  # Always include first
+            step = len(sorted_data) // (max_legend_items - 2)
+            legend_indices.extend(range(step, len(sorted_data) - step, step))
+            legend_indices.append(len(sorted_data) - 1)  # Always include last
+            legend_indices = sorted(set(legend_indices))  # Remove duplicates and sort
+        
+        for i, data in enumerate(sorted_data):
             delta_E = data['delta_E_samples']
             sum_delta_sq = data['sum_delta_squared']
             N = data['zero_count']
             c1_eff = data['c1_effective']
             r2 = data['r_squared']
             
-            ax1.scatter(sum_delta_sq, delta_E, color=colors[i], alpha=0.7, s=50,
-                       label=f'N={N} (C₁={c1_eff:.1e}, R²={r2:.3f})')
+            # Only add label for key N values
+            if i in legend_indices:
+                label = f'N={N} (C₁={c1_eff:.1e}, R²={r2:.3f})'
+            else:
+                label = None
+            
+            ax1.scatter(sum_delta_sq, delta_E, color=colors[i], alpha=0.7, s=50, label=label)
             
             # Plot linear fit
             sum_sq_fit = np.linspace(0, sum_delta_sq.max(), 100)
