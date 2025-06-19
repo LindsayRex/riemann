@@ -247,38 +247,33 @@ def run_experiment3_math(config_file="experiment3_config.json"):
     """Main entry point for Experiment 3 mathematical analysis"""
     math_engine = Experiment3Math(config_file)
     
-    # Load batch configurations
+    # Load individual configuration  
     with open(config_file, 'r') as f:
         config = json.load(f)
     
-    batch_configs = config['batch_configs']
+    # Extract configuration details
+    experiment_type = config['experiment_type']
+    zero_count = config['zero_count']
+    perturbation_mode = config['perturbation_mode']
+    group_name = config.get('group_name', f"{experiment_type}_{zero_count}zeros_{perturbation_mode}")
     
-    print(f"\n=== Experiment 3: Multi-Zero Scaling Analysis ===")
-    print(f"Running {len(batch_configs)} configurations")
-    print(f"Output: {math_engine.output_file}")
+    print(f"Running {experiment_type} with {zero_count} zeros")
+    print(f"Gamma values: {config['gamma_values'][:3]}... (showing first 3)")
     
-    for i, batch_config in enumerate(batch_configs):
-        print(f"\n--- Configuration {i+1}/{len(batch_configs)} ---")
-        
-        # Generate config name
-        experiment_type = batch_config['experiment_type']
-        zero_count = batch_config['zero_count']
-        perturbation_mode = batch_config['perturbation_mode']
-        config_name = f"config_{i+1}_{experiment_type}_{zero_count}zeros_{perturbation_mode}"
-        
-        # Run analysis
-        start_time = time.time()
-        results = math_engine.run_analysis(batch_config)
-        elapsed = time.time() - start_time
-        
-        # Save results
-        math_engine.write_to_hdf5(results, batch_config, config_name)
-        
-        print(f"✓ Completed {config_name} in {elapsed:.2f}s")
+    # Run analysis
+    start_time = time.time()
+    results = math_engine.run_analysis(config)
+    elapsed = time.time() - start_time
     
-    print(f"\n=== Experiment 3 Math Complete ===")
-    print(f"Results saved to: {math_engine.output_file}")
+    # Save results
+    math_engine.write_to_hdf5(results, config, group_name)
+    
+    print(f"✓ Completed {group_name} in {elapsed:.2f}s")
+    
     return math_engine.output_file
 
-if __name__ == "__main__":
-    run_experiment3_math()
+# Run directly if called as script
+# if __name__ == "__main__":
+#     import sys
+#     config_file = sys.argv[1] if len(sys.argv) > 1 else 'experiment3_config.json'
+#     run_experiment3_math(config_file)

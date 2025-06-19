@@ -463,6 +463,9 @@ class Experiment3Viz:
             
             print("Creating Image 4: Uniform vs Random comparison...")
             filenames.append(self.create_comparison_plot(uniform_data, random_data))
+        else:
+            print("Creating Image 3: Random perturbations... (skipped - no random data)")
+            print("Creating Image 4: Uniform vs Random comparison... (skipped - no random data)")
         
         print("Creating Image 5: Statistical dashboard...")
         filenames.append(self.create_statistical_dashboard(uniform_data, random_data, scaling_data))
@@ -480,5 +483,6 @@ def run_experiment3_viz(hdf5_file="data/experiment3_multi_zero_analysis.h5"):
     
     return summary_files
 
-if __name__ == "__main__":
-    run_experiment3_viz()
+# Auto-execution disabled for batch mode
+# if __name__ == "__main__":
+#     run_experiment3_viz()

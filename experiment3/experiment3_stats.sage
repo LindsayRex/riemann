@@ -392,5 +392,6 @@ def run_experiment3_stats(hdf5_file="data/experiment3_multi_zero_analysis.h5"):
     stats_engine.run_statistical_analysis()
     return hdf5_file
 
-if __name__ == "__main__":
-    run_experiment3_stats()
+# Auto-execution disabled for batch mode
+# if __name__ == "__main__":
+#     run_experiment3_stats()
