@@ -17,7 +17,7 @@ This repository contains experimental mathematics code testing the **Universal C
 
 **Important:** Ensure the conda environment is activated before running experiments:
 ```bash
-conda activate riemann-experiments
+conda activate sagemath
 ```
 
 The project consists of three complementary experiments testing different aspects of the Universal Critical Restoration conjecture:
@@ -77,7 +77,7 @@ The provided `environment.yml` file will install all necessary dependencies.
 2. Create and activate the conda environment:
    ```bash
    conda env create -f environment.yml
-   conda activate riemann-experiments
+   conda activate sagemath
    ```
 3. Run a small experiment to test setup:
    ```bash
@@ -86,7 +86,7 @@ The provided `environment.yml` file will install all necessary dependencies.
    ```
 4. Check results in `experiment1/results/`
 
-**Note:** All experiments must be run with the `riemann-experiments` conda environment activated, as SageMath is only available in this environment.
+**Note:** All experiments must be run with the `sagemath` conda environment activated, as SageMath is only available in this environment.
 
 ## Results and Analysis
 
