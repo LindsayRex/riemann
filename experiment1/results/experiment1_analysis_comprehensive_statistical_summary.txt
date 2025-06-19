@@ -1,0 +1,60 @@
+EXPERIMENT 1: COMPREHENSIVE STATISTICAL ANALYSIS SUMMARY
+======================================================================
+
+Generated: 2025-06-19 18:50:59
+Total configurations: 3
+
+CONFIGURATION SUMMARY
+--------------------------------------------------
+Config               C₁ (x10⁻⁶)      C₂ (x10⁻⁹)      R²         Status         
+---------------------------------------------------------------------------
+config_1_gamma_14_134725141734693_gaussian 140156220.315   -777.911        1.000000   Stable         
+config_2_gamma_21_022039638771552_gaussian 140156220.316   -157.944        1.000000   Stable         
+config_3_gamma_25_01085758014569_fourier 140156220.315   -554.182        1.000000   Stable         
+
+
+DETAILED ANALYSIS BY CONFIGURATION
+==================================================
+
+Configuration: config_1_gamma_14_134725141734693_gaussian
+---------------------------------------------------------
+Polynomial Fitting Results:
+  Quadratic: R² = 1.000000, AIC = -112623.14
+  Cubic: R² = 1.000000, AIC = -112621.14
+    C₁ = 1.401562e+02 ± 3.79e-04
+    C₂ = -7.779107e-07 ± 1.05e-03
+  Quartic: R² = 1.000000, AIC = -140726.34
+
+Hypothesis Testing:
+  Local Stability (C₁ > 0): t = 370249.9613, p = 0.000000 -> STABLE
+  Cubic Term (C₂ ≠ 0): t = -0.0007, p = 0.999410 -> NOT SIGNIFICANT
+
+
+Configuration: config_2_gamma_21_022039638771552_gaussian
+---------------------------------------------------------
+Polynomial Fitting Results:
+  Quadratic: R² = 1.000000, AIC = -112623.14
+  Cubic: R² = 1.000000, AIC = -112621.14
+    C₁ = 1.401562e+02 ± 3.79e-04
+    C₂ = -1.579442e-07 ± 5.14e-04
+  Quartic: R² = 1.000000, AIC = -140726.34
+
+Hypothesis Testing:
+  Local Stability (C₁ > 0): t = 370249.9613, p = 0.000000 -> STABLE
+  Cubic Term (C₂ ≠ 0): t = -0.0003, p = 0.999755 -> NOT SIGNIFICANT
+
+
+Configuration: config_3_gamma_25_01085758014569_fourier
+-------------------------------------------------------
+Polynomial Fitting Results:
+  Quadratic: R² = 1.000000, AIC = -112623.14
+  Cubic: R² = 1.000000, AIC = -112621.14
+    C₁ = 1.401562e+02 ± 3.79e-04
+    C₂ = -5.541819e-07 ± 9.02e-04
+  Quartic: R² = 1.000000, AIC = -140726.34
+
+Hypothesis Testing:
+  Local Stability (C₁ > 0): t = 370249.9613, p = 0.000000 -> STABLE
+  Cubic Term (C₂ ≠ 0): t = -0.0006, p = 0.999510 -> NOT SIGNIFICANT
+
+

@@ -1,0 +1,39 @@
+EXPERIMENT 1: SINGLE-ZERO PERTURBATION ANALYSIS
+======================================================================
+
+Analysis Timestamp: 2025-06-19 18:51:48
+Dataset: 1 configurations
+Parameter Space: γ ∈ [14.135, 14.135]
+
+STABILITY ANALYSIS SUMMARY:
+----------------------------------------
+Total Configurations: 1
+Stable Coefficients (C₁ > 0): 1 (100.0%)
+Mean C₁ Coefficient: 1.401e+02
+Mean R² (Fit Quality): 1.000000
+Significant Stability (p < 0.05): 1 (100.0%)
+
+DETAILED CONFIGURATION RESULTS:
+----------------------------------------
+Config                         γ            Type       C₁              R²         p-value   
+------------------------------------------------------------------------------------------
+1γ14_134725141734693_gaussia   14.135       gaussian   1.401e+02       1.000000   0.000e+00 
+
+STATISTICAL SUMMARY:
+----------------------------------------
+Overall Assessment: STABLE
+Riemann Hypothesis Support: Energy functional exhibits local stability
+Mathematical Significance: C₁ > 0 confirmed across all configurations
+
+EXPERIMENTAL DETAILS:
+----------------------------------------
+Energy Functional: Single-zero perturbation ΔE(δ) = C₁δ² + C₂δ³ + ...
+Test Function Basis: gaussian
+Statistical Methods: Polynomial fitting, bootstrap confidence intervals, hypothesis testing
+
+GENERATED FILES:
+--------------------
+  HDF5 data: experiment1/data/experiment1_high_precision.h5
+  Summary images: experiment1_summary_1.png through experiment1_summary_5.png
+  This report: experiment1/results/experiment1_high_precision_summary_report.txt
+

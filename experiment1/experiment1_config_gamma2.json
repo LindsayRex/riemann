@@ -11,9 +11,9 @@
     "comments": {
         "gamma": "Second nontrivial Riemann zeta zero height (21.022...)",
         "delta_range": "Slightly larger range to test stability at different scales",
-        "delta_steps": "1600 data points for extremely precise curve fitting",
-        "num_test_functions": "400 test functions for high-precision energy computation",
-        "bootstrap_samples": "300k bootstrap samples for robust confidence intervals",
+        "delta_steps": "More data points for better curve fitting",
+        "num_test_functions": "More test functions for higher precision",
+        "bootstrap_samples": "More bootstrap samples for robust confidence intervals",
         "purpose": "Test if C₁ > 0 result holds for different zero heights"
     }
 }

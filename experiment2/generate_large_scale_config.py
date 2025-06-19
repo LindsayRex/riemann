@@ -24,19 +24,19 @@ def generate_large_scale_configs():
     """Generate systematic large-scale configuration set"""
     configs = []
     
-    # Get approximations for first 1000 zeros
-    zeros = riemann_zeros_approximation(1000)
+    # Get approximations for first 2000 zeros (doubled from 1000)
+    zeros = riemann_zeros_approximation(2000)
     
-    print(f"Generating large-scale configurations...")
-    print(f"Zero range: γ₁ ∈ [14.13, {zeros[499]:.2f}], γ₂ ∈ [14.13, {zeros[999]:.2f}]")
+    print(f"Generating massive-scale configurations...")
+    print(f"Zero range: γ₁ ∈ [14.13, {zeros[999]:.2f}], γ₂ ∈ [14.13, {zeros[1999]:.2f}]")
     
     # ===== STRATEGY 1: SEPARATION ANALYSIS =====
     # Study C₁₂ vs |γ₂ - γ₁| systematically
     
     # Small separations: Adjacent and near-adjacent (separation ≤ 20)
     print("Adding small separation pairs...")
-    for i in range(0, 400, 2):  # Every 2nd zero from first 400
-        for sep in [1, 2, 3, 5, 8]:  # Different separation patterns
+    for i in range(0, 800, 2):  # Every 2nd zero from first 800 (doubled)
+        for sep in [1, 2, 3, 5, 8, 12, 15]:  # More separation patterns
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -45,8 +45,8 @@ def generate_large_scale_configs():
     
     # Medium separations: 20 < |γ₂ - γ₁| < 100
     print("Adding medium separation pairs...")
-    for i in range(0, 300, 3):  # Every 3rd zero from first 300
-        for sep in [10, 15, 25, 40, 60, 80]:
+    for i in range(0, 600, 3):  # Every 3rd zero from first 600 (doubled)
+        for sep in [10, 15, 25, 40, 60, 80, 95]:  # More separations
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -55,8 +55,8 @@ def generate_large_scale_configs():
     
     # Large separations: |γ₂ - γ₁| > 100
     print("Adding large separation pairs...")
-    for i in range(0, 200, 5):  # Every 5th zero from first 200
-        for sep in [100, 150, 250, 400, 600]:
+    for i in range(0, 400, 5):  # Every 5th zero from first 400 (doubled)
+        for sep in [100, 150, 250, 400, 600, 800, 1000]:  # More large separations
             if i + sep < len(zeros):
                 configs.append({
                     "gamma1": zeros[i],
@@ -68,8 +68,8 @@ def generate_large_scale_configs():
     print("Adding high-γ coverage...")
     
     # High γ₁, various γ₂
-    for i in range(400, 800, 10):  # High γ₁ values
-        for j in range(i + 1, min(i + 50, 900), 5):  # Various γ₂ > γ₁
+    for i in range(800, 1600, 10):  # High γ₁ values (doubled range)
+        for j in range(i + 1, min(i + 80, 1800), 5):  # More γ₂ values
             configs.append({
                 "gamma1": zeros[i],
                 "gamma2": zeros[j]
@@ -80,8 +80,8 @@ def generate_large_scale_configs():
     print("Adding parameter space grid...")
     
     # Create grid in (γ₁, γ₂) space
-    gamma1_grid = np.linspace(zeros[0], zeros[500], 25)  # 25 γ₁ values
-    gamma2_grid = np.linspace(zeros[0], zeros[700], 30)  # 30 γ₂ values
+    gamma1_grid = np.linspace(zeros[0], zeros[1000], 40)  # 40 γ₁ values (was 25)
+    gamma2_grid = np.linspace(zeros[0], zeros[1400], 50)  # 50 γ₂ values (was 30)
     
     for g1 in gamma1_grid:
         for g2 in gamma2_grid:
@@ -96,9 +96,9 @@ def generate_large_scale_configs():
     print("Adding random sampling...")
     np.random.seed(42)  # Reproducible
     
-    for _ in range(800):  # 800 random pairs
-        i = np.random.randint(0, 600)
-        j = np.random.randint(i + 1, 900)
+    for _ in range(2000):  # 2000 random pairs (was 800)
+        i = np.random.randint(0, 1200)  # Larger range
+        j = np.random.randint(i + 1, 1800)  # Larger range
         configs.append({
             "gamma1": zeros[i],
             "gamma2": zeros[j]
@@ -132,14 +132,15 @@ if __name__ == "__main__":
     batch_configs = generate_large_scale_configs()
     
     # Load base config
-    with open('experiment2_config_large_scale.json', 'r') as f:
+    config_path = '/home/rexl1/riemann/experiment2/experiment2_config_large_scale.json'
+    with open(config_path, 'r') as f:
         config = json.load(f)
     
     # Add batch configurations
     config['batch_configs'] = batch_configs
     
     # Save updated config
-    with open('experiment2_config_large_scale.json', 'w') as f:
+    with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
     
     print(f"\n✓ Large-scale config saved: experiment2_config_large_scale.json")

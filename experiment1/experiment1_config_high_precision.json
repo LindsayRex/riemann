@@ -11,9 +11,9 @@
     "comments": {
         "gamma": "First zero with high precision (14.134725141734693)",
         "delta_range": "Smaller range for ultra-local analysis",
-        "delta_steps": "Ultra-high resolution with 2000 points in the critical region",
-        "num_test_functions": "Maximum precision setup with 480 test functions",
-        "bootstrap_samples": "400k bootstrap samples for extreme statistical precision",
+        "delta_steps": "High resolution in the critical region",
+        "num_test_functions": "Maximum precision setup",
+        "bootstrap_samples": "Maximum bootstrap samples for publication-quality statistics",
         "purpose": "Ultra-high precision analysis to detect any subtle deviations from quadratic behavior"
     }
 }
