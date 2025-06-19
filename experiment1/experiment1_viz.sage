@@ -26,18 +26,20 @@ import os
 class Experiment1Visualization:
     """Enhanced visualization module for single-zero perturbation experiment with HDF5 support."""
     
-    def __init__(self, hdf5_file, output_dir="results", figsize=(12, 8), dpi=300):
+    def __init__(self, hdf5_file, output_dir="results", output_prefix="exp1", figsize=(12, 8), dpi=300):
         """
         Initialize visualization module.
         
         Args:
             hdf5_file: Path to HDF5 data file
             output_dir: Directory for output files
+            output_prefix: Prefix for output file names
             figsize: Figure size for plots
             dpi: Resolution for saved figures
         """
         self.hdf5_file = hdf5_file
         self.output_dir = output_dir
+        self.output_prefix = output_prefix
         self.figsize = figsize
         self.dpi = dpi
         
@@ -498,7 +500,7 @@ class Experiment1Visualization:
                                                  fitting_results, ax2)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, f"exp1_energy_behavior_{config_name}.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_energy_behavior_{config_name}.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -555,7 +557,7 @@ class Experiment1Visualization:
                 self.plot_bootstrap_distributions(bootstrap_stats, ax2)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, f"exp1_statistical_analysis_{config_name}.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_statistical_analysis_{config_name}.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -590,7 +592,7 @@ class Experiment1Visualization:
                 self.plot_hypothesis_testing_summary(hypothesis_tests, ax, f" - {config_name}")
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, f"exp1_hypothesis_testing_{config_name}.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_hypothesis_testing_{config_name}.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -675,7 +677,7 @@ class Experiment1Visualization:
                                    fontsize=8, alpha=0.8)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_cross_configuration_analysis.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_cross_configuration_analysis.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -715,7 +717,7 @@ class Experiment1Visualization:
                 ax.set_title('Configuration Summary Table', fontsize=16, fontweight='bold', pad=20)
                 
                 plt.tight_layout()
-                filename_table = os.path.join(self.output_dir, "exp1_configuration_summary_table.png")
+                filename_table = os.path.join(self.output_dir, f"{self.output_prefix}_configuration_summary_table.png")
                 plt.savefig(filename_table, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -784,7 +786,7 @@ class Experiment1Visualization:
                 ax2.grid(True, alpha=0.3)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_energy_behavior.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_energy_behavior.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -865,7 +867,7 @@ class Experiment1Visualization:
                 ax2_twin.legend(loc='upper right')
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_statistical_models.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_statistical_models.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -968,7 +970,7 @@ class Experiment1Visualization:
                 ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_hypothesis_testing.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_hypothesis_testing.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -1058,7 +1060,7 @@ class Experiment1Visualization:
                 ax2.legend()
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_bootstrap_analysis.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_bootstrap_analysis.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -1165,7 +1167,7 @@ class Experiment1Visualization:
                 ax2.legend()
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_parameter_sensitivity.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_parameter_sensitivity.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -1378,7 +1380,7 @@ class Experiment1Visualization:
                 ax2.legend()
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_energy_behavior.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_energy_behavior.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 
@@ -1484,7 +1486,7 @@ class Experiment1Visualization:
                                fontsize=8, alpha=0.8)
                 
                 plt.tight_layout()
-                filename = os.path.join(self.output_dir, "exp1_hypothesis_testing.png")
+                filename = os.path.join(self.output_dir, f"{self.output_prefix}_hypothesis_testing.png")
                 plt.savefig(filename, dpi=self.dpi, bbox_inches='tight')
                 plt.close()
                 

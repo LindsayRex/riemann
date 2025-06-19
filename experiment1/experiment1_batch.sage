@@ -43,7 +43,21 @@ class Experiment1BatchOrchestrator:
         """
         self.config_file = config_file
         self.config = self._load_configuration()
-        self.hdf5_file = f"experiment1/data/{self.config.get('output_file', 'experiment1_analysis.h5')}"
+        
+        # Create unique output file names based on config
+        if 'output_file' in self.config:
+            # Use explicit output_file if provided
+            self.hdf5_file = f"experiment1/data/{self.config['output_file']}"
+            self.output_prefix = self.config['output_file'].replace('.h5', '')
+        elif 'output_prefix' in self.config:
+            # Use output_prefix to generate unique names
+            prefix = self.config['output_prefix']
+            self.hdf5_file = f"experiment1/data/{prefix}.h5"
+            self.output_prefix = prefix
+        else:
+            # Default fallback
+            self.hdf5_file = f"experiment1/data/experiment1_analysis.h5"
+            self.output_prefix = "experiment1_analysis"
         
         print("=" * 80)
         print("EXPERIMENT 1: BATCH ORCHESTRATOR")
@@ -164,7 +178,7 @@ class Experiment1BatchOrchestrator:
         stats_analyzer.analyze_all_configurations()
         
         # Generate comprehensive summary report
-        summary_report_path = "experiment1/results/exp1_comprehensive_statistical_summary.txt"
+        summary_report_path = f"experiment1/results/{self.output_prefix}_comprehensive_statistical_summary.txt"
         stats_analyzer.generate_summary_report(summary_report_path)
         
     def _run_visualization_engine(self):
@@ -172,7 +186,7 @@ class Experiment1BatchOrchestrator:
         Execute Layer 4: Enhanced Visualization Engine - generate comprehensive analysis.
         """
         print("📊 Running comprehensive visualization engine...")
-        viz_engine = Experiment1Visualization(self.hdf5_file, output_dir="experiment1/results")
+        viz_engine = Experiment1Visualization(self.hdf5_file, output_dir="experiment1/results", output_prefix=self.output_prefix)
         generated_files = viz_engine.generate_all_visualizations()
         
         print(f"✅ Generated {len(generated_files)} visualization files")
@@ -182,7 +196,7 @@ class Experiment1BatchOrchestrator:
         Generate unified summary report following existing format.
         Creates experiment1_summary_report.txt in results directory.
         """
-        report_path = "experiment1/results/experiment1_summary_report.txt"
+        report_path = f"experiment1/results/{self.output_prefix}_summary_report.txt"
         
         # Read all configuration data from HDF5
         config_data = []
