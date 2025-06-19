@@ -1,20 +1,21 @@
 {
     "gamma": 25.010857580145688,
     "delta_range": 0.15,
-    "delta_steps": 61,
-    "num_test_functions": 30,
+    "delta_steps": 9000,
+    "num_test_functions": 2200,
     "test_function_type": "fourier",
     "confidence_level": 0.99,
-    "bootstrap_samples": 20000,
+    "bootstrap_samples": 1800000,
     "output_prefix": "experiment1_gamma3_fourier",
     "verbose": true,
     "comments": {
         "gamma": "Third nontrivial Riemann zeta zero height (25.010...)",
         "delta_range": "Larger perturbation range to test nonlinear effects",
-        "delta_steps": "High resolution for detailed analysis",
-        "num_test_functions": "Maximum test functions for precision",
+        "delta_steps": "1800 points for ultra-high resolution detailed analysis",
+        "num_test_functions": "440 Fourier test functions for maximum precision",
         "test_function_type": "Fourier basis instead of Gaussian for comparison",
         "confidence_level": "99% confidence for stricter statistical tests",
+        "bootstrap_samples": "320k samples for extreme statistical power",
         "purpose": "Test robustness across different zero heights and test function types"
     }
 }

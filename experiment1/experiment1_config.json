@@ -1,11 +1,11 @@
 {
     "gamma": 14.134725141734693,
     "delta_range": 0.08,
-    "delta_steps": 33,
-    "num_test_functions": 15,
+    "delta_steps": 6000,
+    "num_test_functions": 1600,
     "test_function_type": "gaussian",
     "confidence_level": 0.95,
-    "bootstrap_samples": 5000,
+    "bootstrap_samples": 1000000,
     "output_file": "experiment1_analysis.h5",
     "verbose": true,
     "batch_configs": [
@@ -16,10 +16,10 @@
     "comments": {
         "gamma": "First nontrivial Riemann zeta zero height (14.134725...)",
         "delta_range": "Small perturbation range ±0.08 from critical line for local analysis",
-        "delta_steps": "33 points provides good resolution while keeping computation manageable",
-        "num_test_functions": "15 Gaussian test functions balance accuracy vs computation time",
+        "delta_steps": "1200 points provides extremely fine resolution for precise curve fitting",
+        "num_test_functions": "320 Gaussian test functions provide comprehensive energy approximation",
         "test_function_type": "Gaussian functions work well for localized perturbations",
-        "bootstrap_samples": "5000 samples provide good statistical precision for testing",
+        "bootstrap_samples": "200k samples provide publication-quality statistical precision for testing",
         "batch_configs": "Multiple configurations to test different zeros and function types",
         "output_file": "Single HDF5 file containing all configuration results",
         "note": "This is a test configuration - increase parameters for production runs"
