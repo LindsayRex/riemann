@@ -15,6 +15,11 @@ This repository contains experimental mathematics code testing the **Universal C
 
 ## Experiments
 
+**Important:** Ensure the conda environment is activated before running experiments:
+```bash
+conda activate riemann-experiments
+```
+
 The project consists of three complementary experiments testing different aspects of the Universal Critical Restoration conjecture:
 
 ### Experiment 1: Single-Zero Perturbation
@@ -59,20 +64,29 @@ sage experiment3/experiment3_batch.sage experiment3/experiment3_config_phase3_fu
 
 ## Requirements
 
-- **SageMath 9.0+** with HDF5 support
-- **Python 3.7+** with numpy, matplotlib, scipy
+- **Conda/Miniconda** for environment management
+- **SageMath 10.6+** with HDF5 support (installed via conda)
+- **Python 3.12+** with numpy, matplotlib, scipy, h5py, pandas
 - **System:** Linux/macOS recommended, 16+ GB RAM for large experiments
+
+The provided `environment.yml` file will install all necessary dependencies.
 
 ## Quick Start
 
 1. Clone the repository
-2. Install SageMath and required Python packages
+2. Create and activate the conda environment:
+   ```bash
+   conda env create -f environment.yml
+   conda activate riemann-experiments
+   ```
 3. Run a small experiment to test setup:
    ```bash
    cd experiment1
    sage experiment1_batch.sage experiment1_config.json
    ```
 4. Check results in `experiment1/results/`
+
+**Note:** All experiments must be run with the `riemann-experiments` conda environment activated, as SageMath is only available in this environment.
 
 ## Results and Analysis
 

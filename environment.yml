@@ -1,0 +1,34 @@
+name: riemann-experiments
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Core mathematical environment
+  - python=3.12
+  - sage=10.6
+  
+  # Essential numerical computing packages
+  - numpy
+  - scipy
+  - matplotlib-base
+  - h5py
+  - pandas
+  
+  # Jupyter environment (required by SageMath)
+  - jupyterlab
+  - jupyter_client
+  - jupyter_core
+  - jupyter_server
+  - ipykernel
+  - ipywidgets
+  
+  # Additional mathematical libraries used by experiments
+  - sympy
+  - mpmath
+  
+  # Development and analysis tools
+  - git
+  
+  # Optional: for advanced plotting if needed
+  # - plotly
+  # - seaborn

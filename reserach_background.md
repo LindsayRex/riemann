@@ -1,6 +1,4 @@
-Perfect. Below is a **complete layperson-accessible markdown document**, using LaTeX for math expressions, that carefully explains the background, motivation, reformulation of the Riemann Hypothesis as an energy minimization problem, and how the numerical experiments serve as the gateway to analytical proof.
 
----
 
 # 🔬 Experimental Mathematics Program: A New Path Toward the Riemann Hypothesis
 
@@ -165,10 +163,3 @@ This program is not just about getting a “yes or no” to the Riemann Hypothes
 * 📐 It seeks **quantitative structure**: inequalities, asymptotics, operator bounds—all the ingredients needed for a real proof.
 * 🧠 It combines logic, computation, and physical intuition into a mathematically sound pipeline for discovery.
 
----
-
-Let’s test the landscape, one zero at a time, and let the numbers teach us what’s hidden beneath the surface.
-
----
-
-Would you like this saved as a markdown file for use in your AI pipeline?
