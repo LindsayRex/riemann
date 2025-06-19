@@ -1271,8 +1271,13 @@ class Experiment1Visualization:
             if filename:
                 generated_files.append(filename)
             
-            print(f"\nGenerating hypothesis testing comparison...")
-            filename = self.generate_hypothesis_testing_comparison()
+            print(f"\nGenerating energy behavior analysis...")
+            filename = self.generate_energy_behavior_analysis()
+            if filename:
+                generated_files.append(filename)
+            
+            print(f"\nGenerating hypothesis testing analysis...")
+            filename = self.generate_hypothesis_testing_analysis()
             if filename:
                 generated_files.append(filename)
             
@@ -1412,7 +1417,7 @@ class Experiment1Visualization:
                         if 'local_stability' in hyp_group:
                             stability_group = hyp_group['local_stability']
                             p_val = float(stability_group['p_value'][()])
-                            significant = bool(stability_group['significant'][()])
+                            significant = p_val < 0.05  # Calculate significance
                             stability_pvals.append(p_val)
                             stability_significant.append(significant)
                         else:
@@ -1422,7 +1427,7 @@ class Experiment1Visualization:
                         if 'cubic_significance' in hyp_group:
                             cubic_group = hyp_group['cubic_significance']
                             p_val = float(cubic_group['p_value'][()])
-                            significant = bool(cubic_group['significant'][()])
+                            significant = p_val < 0.05  # Calculate significance
                             cubic_pvals.append(p_val)
                             cubic_significant.append(significant)
                         else:
