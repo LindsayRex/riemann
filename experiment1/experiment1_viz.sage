@@ -16,8 +16,10 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import h5py
 from scipy import stats as scipy_stats
 import time
+import h5py
 
 class Experiment1Visualization:
     """Visualization module for single-zero perturbation experiment."""
@@ -583,3 +585,373 @@ def create_experiment1_visualization(figsize=(20, 12), dpi=300):
         Experiment1Visualization: Configured visualization instance
     """
     return Experiment1Visualization(figsize=figsize, dpi=dpi)
+
+# ############################################################################
+# HDF5 INTEGRATION FOR BATCH ORCHESTRATOR  
+# ############################################################################
+
+class Experiment1Viz:
+    """
+    HDF5-compatible wrapper for visualization engine.
+    Implements the interface expected by the batch orchestrator.
+    """
+    
+    def __init__(self, hdf5_file):
+        """
+        Initialize visualization engine for HDF5 data.
+        
+        Args:
+            hdf5_file: Path to HDF5 file containing experiment data
+        """
+        self.hdf5_file = hdf5_file
+        self.viz_engine = Experiment1Visualization(figsize=(18, 10), dpi=300)
+        
+        print(f"📈 Experiment1Viz initialized for: {hdf5_file}")
+        
+    def generate_summary_visualizations(self):
+        """
+        Generate exactly 5 summary visualization images following Design Guide.
+        """
+        print("🎨 Generating 5 summary visualization images...")
+        
+        # Read all data from HDF5
+        all_configs_data = self._load_all_configurations()
+        
+        if not all_configs_data:
+            print("✗ No data found in HDF5 file")
+            return
+            
+        # Generate the 5 standardized summary images
+        self._generate_image_1_stability_analysis(all_configs_data)
+        self._generate_image_2_fit_quality(all_configs_data) 
+        self._generate_image_3_energy_patterns(all_configs_data)
+        self._generate_image_4_configuration_comparison(all_configs_data)
+        self._generate_image_5_parameter_space(all_configs_data)
+        
+        print("✅ All 5 summary visualizations generated")
+        
+    def _load_all_configurations(self):
+        """Load data from all configurations in HDF5 file."""
+        all_data = {}
+        
+        try:
+            with h5py.File(self.hdf5_file, 'r') as f:
+                for config_name in f.keys():
+                    config_group = f[config_name]
+                    
+                    # Load perturbation analysis data
+                    analysis_data = config_group['perturbation_analysis']
+                    delta = analysis_data['delta'][:]
+                    delta_E = analysis_data['delta_E'][:]
+                    
+                    # Load metadata
+                    metadata = config_group['metadata']
+                    gamma = metadata.attrs['gamma']
+                    test_function_type = metadata.attrs['test_function_type'].decode() if isinstance(metadata.attrs['test_function_type'], bytes) else metadata.attrs['test_function_type']
+                    
+                    # Load statistical results if available
+                    stats_data = {}
+                    if 'statistical_analysis' in config_group:
+                        stats_group = config_group['statistical_analysis']
+                        stats_data = {key: stats_group.attrs[key] for key in stats_group.attrs.keys()}
+                    
+                    all_data[config_name] = {
+                        'delta': delta,
+                        'delta_E': delta_E,
+                        'gamma': gamma,
+                        'test_function_type': test_function_type,
+                        'stats': stats_data
+                    }
+                    
+        except Exception as e:
+            print(f"✗ Error loading HDF5 data: {e}")
+            return {}
+            
+        print(f"✓ Loaded data from {len(all_data)} configurations")
+        return all_data
+        
+    def _generate_image_1_stability_analysis(self, all_data):
+        """Image 1: Stability Analysis - C₁ coefficients + confidence intervals"""
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+        fig.suptitle('Image 1: Stability Analysis - C₁ Coefficients Across Configurations', 
+                    fontsize=18, fontweight='bold')
+        
+        # Extract C1 coefficients and confidence intervals
+        config_names = []
+        c1_values = []
+        c1_errors = []
+        gamma_values = []
+        
+        for config_name, data in all_data.items():
+            if 'C1_coefficient' in data['stats']:
+                config_names.append(config_name.replace('config_', '').replace('_', ' '))
+                c1_values.append(data['stats']['C1_coefficient'])
+                c1_errors.append(data['stats']['C1_stderr'])
+                gamma_values.append(data['gamma'])
+        
+        if c1_values:
+            # Left plot: C1 coefficients with error bars
+            x_pos = range(len(config_names))
+            colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+            
+            bars = ax1.bar(x_pos, c1_values, yerr=c1_errors, capsize=10, 
+                          color=[colors[i % len(colors)] for i in range(len(c1_values))],
+                          alpha=0.8, edgecolor='black', linewidth=1)
+            
+            ax1.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7,
+                       label='Stability threshold (C₁=0)')
+            ax1.set_xlabel('Configuration', fontsize=14)
+            ax1.set_ylabel('C₁ Coefficient', fontsize=14)
+            ax1.set_title('C₁ Coefficients with Standard Errors', fontsize=16)
+            ax1.set_xticks(x_pos)
+            ax1.set_xticklabels(config_names, rotation=45, ha='right')
+            ax1.grid(True, alpha=0.3)
+            ax1.legend()
+            
+            # Right plot: C1 vs gamma values
+            ax2.scatter(gamma_values, c1_values, s=100, alpha=0.8, 
+                       c=[colors[i % len(colors)] for i in range(len(c1_values))],
+                       edgecolors='black', linewidth=1)
+            
+            for i, (gamma, c1, config) in enumerate(zip(gamma_values, c1_values, config_names)):
+                ax2.annotate(f'γ={gamma:.1f}', (gamma, c1), 
+                           xytext=(5, 5), textcoords='offset points', fontsize=10)
+            
+            ax2.axhline(y=0, color='red', linestyle='--', linewidth=2, alpha=0.7)
+            ax2.set_xlabel('Zero Height γ', fontsize=14)
+            ax2.set_ylabel('C₁ Coefficient', fontsize=14)
+            ax2.set_title('C₁ vs Zero Height', fontsize=16)
+            ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig('results/experiment1_summary_1.png', dpi=300, bbox_inches='tight')
+        print("✓ Image 1: Stability Analysis saved")
+        plt.close()
+        
+    def _generate_image_2_fit_quality(self, all_data):
+        """Image 2: Fit Quality Assessment - R² values + distribution"""
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+        fig.suptitle('Image 2: Fit Quality Assessment - R² Values and Distributions', 
+                    fontsize=18, fontweight='bold')
+        
+        r_squared_values = []
+        config_labels = []
+        
+        for config_name, data in all_data.items():
+            if 'r_squared' in data['stats']:
+                r_squared_values.append(data['stats']['r_squared'])
+                config_labels.append(config_name.replace('config_', '').replace('_', ' '))
+        
+        if r_squared_values:
+            # Left plot: R² bar chart
+            x_pos = range(len(config_labels))
+            colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+            
+            bars = ax1.bar(x_pos, r_squared_values,
+                          color=[colors[i % len(colors)] for i in range(len(r_squared_values))],
+                          alpha=0.8, edgecolor='black', linewidth=1)
+            
+            ax1.axhline(y=0.95, color='green', linestyle='--', linewidth=2, alpha=0.7,
+                       label='Excellent fit (R²>0.95)')
+            ax1.axhline(y=0.90, color='orange', linestyle='--', linewidth=2, alpha=0.7,
+                       label='Good fit (R²>0.90)')
+            ax1.set_xlabel('Configuration', fontsize=14)
+            ax1.set_ylabel('R² Value', fontsize=14)
+            ax1.set_title('Fit Quality by Configuration', fontsize=16)
+            ax1.set_xticks(x_pos)
+            ax1.set_xticklabels(config_labels, rotation=45, ha='right')
+            ax1.set_ylim(0, 1.02)
+            ax1.grid(True, alpha=0.3)
+            ax1.legend()
+            
+            # Right plot: R² distribution histogram
+            ax2.hist(r_squared_values, bins=10, alpha=0.7, color='skyblue', 
+                    edgecolor='black', linewidth=1)
+            ax2.axvline(np.mean(r_squared_values), color='red', linestyle='-', linewidth=2,
+                       label=f'Mean R² = {np.mean(r_squared_values):.4f}')
+            ax2.set_xlabel('R² Value', fontsize=14)
+            ax2.set_ylabel('Frequency', fontsize=14)
+            ax2.set_title('R² Distribution', fontsize=16)
+            ax2.grid(True, alpha=0.3)
+            ax2.legend()
+        
+        plt.tight_layout()
+        plt.savefig('results/experiment1_summary_2.png', dpi=300, bbox_inches='tight')
+        print("✓ Image 2: Fit Quality saved")
+        plt.close()
+        
+    def _generate_image_3_energy_patterns(self, all_data):
+        """Image 3: Energy Perturbation Patterns - δE vs δ for key configurations"""
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+        fig.suptitle('Image 3: Energy Perturbation Patterns - ΔE vs δ Comparison', 
+                    fontsize=18, fontweight='bold')
+        
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
+        
+        # Left plot: All configurations overlay
+        for i, (config_name, data) in enumerate(all_data.items()):
+            color = colors[i % len(colors)]
+            label = f"γ={data['gamma']:.1f} ({data['test_function_type']})"
+            
+            ax1.plot(data['delta'], data['delta_E'], 'o-', color=color, 
+                    alpha=0.8, linewidth=2, markersize=4, label=label)
+        
+        ax1.axhline(y=0, color='black', linestyle='-', alpha=0.3, linewidth=1)
+        ax1.axvline(x=0, color='red', linestyle='--', alpha=0.5, linewidth=2)
+        ax1.set_xlabel('Perturbation δ', fontsize=14)
+        ax1.set_ylabel('Energy Change ΔE', fontsize=14)
+        ax1.set_title('Energy Patterns Across Configurations', fontsize=16)
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Right plot: Quadratic fits comparison
+        delta_fine = np.linspace(-0.08, 0.08, 100)
+        
+        for i, (config_name, data) in enumerate(all_data.items()):
+            if 'C1_coefficient' in data['stats']:
+                color = colors[i % len(colors)]
+                c1 = data['stats']['C1_coefficient']
+                label = f"γ={data['gamma']:.1f}: C₁={c1:.2e}"
+                
+                quadratic_fit = c1 * delta_fine**2
+                ax2.plot(delta_fine, quadratic_fit, '--', color=color, 
+                        linewidth=2, alpha=0.8, label=label)
+        
+        ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3, linewidth=1)
+        ax2.axvline(x=0, color='red', linestyle='--', alpha=0.5, linewidth=2)
+        ax2.set_xlabel('Perturbation δ', fontsize=14)
+        ax2.set_ylabel('Quadratic Fit ΔE = C₁δ²', fontsize=14)
+        ax2.set_title('Quadratic Behavior Comparison', fontsize=16)
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig('results/experiment1_summary_3.png', dpi=300, bbox_inches='tight')
+        print("✓ Image 3: Energy Patterns saved")
+        plt.close()
+        
+    def _generate_image_4_configuration_comparison(self, all_data):
+        """Image 4: Configuration Comparison - Gamma values vs stability metrics"""
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+        fig.suptitle('Image 4: Configuration Comparison - Parameters vs Stability', 
+                    fontsize=18, fontweight='bold')
+        
+        gamma_values = []
+        c1_values = []
+        p_values = []
+        test_types = []
+        
+        for config_name, data in all_data.items():
+            gamma_values.append(data['gamma'])
+            test_types.append(data['test_function_type'])
+            
+            if 'C1_coefficient' in data['stats']:
+                c1_values.append(data['stats']['C1_coefficient'])
+            else:
+                c1_values.append(0)
+                
+            if 'stability_p_value' in data['stats']:
+                p_values.append(data['stats']['stability_p_value'])
+            else:
+                p_values.append(1.0)
+        
+        # Left plot: C1 vs gamma with test function type
+        gaussian_mask = [t == 'gaussian' for t in test_types]
+        fourier_mask = [t == 'fourier' for t in test_types]
+        
+        if any(gaussian_mask):
+            gamma_gauss = [g for g, m in zip(gamma_values, gaussian_mask) if m]
+            c1_gauss = [c for c, m in zip(c1_values, gaussian_mask) if m]
+            ax1.scatter(gamma_gauss, c1_gauss, s=100, alpha=0.8, 
+                       c='blue', marker='o', label='Gaussian', edgecolors='black')
+                       
+        if any(fourier_mask):
+            gamma_four = [g for g, m in zip(gamma_values, fourier_mask) if m]
+            c1_four = [c for c, m in zip(c1_values, fourier_mask) if m]
+            ax1.scatter(gamma_four, c1_four, s=100, alpha=0.8, 
+                       c='red', marker='s', label='Fourier', edgecolors='black')
+        
+        ax1.axhline(y=0, color='black', linestyle='--', linewidth=2, alpha=0.7)
+        ax1.set_xlabel('Zero Height γ', fontsize=14)
+        ax1.set_ylabel('C₁ Coefficient', fontsize=14)
+        ax1.set_title('Stability vs Zero Height by Test Function', fontsize=16)
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+        
+        # Right plot: P-values vs gamma
+        significance_mask = [p < 0.05 for p in p_values]
+        
+        ax2.scatter(gamma_values, p_values, s=100, alpha=0.8,
+                   c=['green' if sig else 'red' for sig in significance_mask],
+                   edgecolors='black', linewidth=1)
+        
+        ax2.axhline(y=0.05, color='red', linestyle='--', linewidth=2, alpha=0.7,
+                   label='Significance threshold (p=0.05)')
+        ax2.set_xlabel('Zero Height γ', fontsize=14)
+        ax2.set_ylabel('Stability p-value', fontsize=14)
+        ax2.set_title('Statistical Significance vs Zero Height', fontsize=16)
+        ax2.set_yscale('log')
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig('results/experiment1_summary_4.png', dpi=300, bbox_inches='tight')
+        print("✓ Image 4: Configuration Comparison saved")
+        plt.close()
+        
+    def _generate_image_5_parameter_space(self, all_data):
+        """Image 5: Parameter Space Coverage - Test function types and precision levels"""
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+        fig.suptitle('Image 5: Parameter Space Coverage - Function Types and Computational Details', 
+                    fontsize=18, fontweight='bold')
+        
+        # Left plot: Test function type distribution
+        test_types = [data['test_function_type'] for data in all_data.values()]
+        type_counts = {}
+        for t in test_types:
+            type_counts[t] = type_counts.get(t, 0) + 1
+        
+        ax1.pie(type_counts.values(), labels=type_counts.keys(), autopct='%1.1f%%',
+               startangle=90, colors=['skyblue', 'lightcoral', 'lightgreen'])
+        ax1.set_title('Test Function Type Distribution', fontsize=16)
+        
+        # Right plot: Data points and computation time summary
+        config_names = []
+        data_points = []
+        gammas = []
+        
+        for config_name, data in all_data.items():
+            config_names.append(config_name.replace('config_', '').replace('_', ' '))
+            data_points.append(len(data['delta']))
+            gammas.append(data['gamma'])
+        
+        x_pos = range(len(config_names))
+        bars = ax2.bar(x_pos, data_points, alpha=0.8, 
+                      color=['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'][:len(config_names)],
+                      edgecolor='black', linewidth=1)
+        
+        ax2.set_xlabel('Configuration', fontsize=14)
+        ax2.set_ylabel('Number of Data Points', fontsize=14)
+        ax2.set_title('Data Points per Configuration', fontsize=16)
+        ax2.set_xticks(x_pos)
+        ax2.set_xticklabels(config_names, rotation=45, ha='right')
+        ax2.grid(True, alpha=0.3)
+        
+        # Add text summary
+        total_configs = len(all_data)
+        total_points = sum(data_points)
+        avg_points = total_points / total_configs if total_configs > 0 else 0
+        
+        summary_text = f"Total Configurations: {total_configs}\n"
+        summary_text += f"Total Data Points: {total_points}\n"
+        summary_text += f"Average Points/Config: {avg_points:.1f}\n"
+        summary_text += f"Gamma Range: {min(gammas):.1f} - {max(gammas):.1f}"
+        
+        ax2.text(0.02, 0.98, summary_text, transform=ax2.transAxes,
+                verticalalignment='top', fontsize=12,
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+        
+        plt.tight_layout()
+        plt.savefig('results/experiment1_summary_5.png', dpi=300, bbox_inches='tight')
+        print("✓ Image 5: Parameter Space saved")
+        plt.close()

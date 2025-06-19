@@ -17,9 +17,11 @@
 import numpy as np
 import csv
 import time
+import h5py
 from scipy import stats as scipy_stats
 from scipy.optimize import curve_fit
 from sage.all import *
+import h5py
 
 class Experiment1Statistics:
     """Statistical analysis module for single-zero perturbation experiment."""
@@ -680,19 +682,180 @@ class Experiment1Statistics:
         print(f"✓ Statistical results exported to: '{filename}'")
         return filename
 
-# Factory function for easy usage
-def create_experiment1_statistics(confidence_level=0.95, bootstrap_samples=10000):
+# ############################################################################
+# HDF5 INTEGRATION FOR BATCH ORCHESTRATOR
+# ############################################################################
+
+class Experiment1Stats:
     """
-    Factory function to create Experiment1Statistics instance.
+    HDF5-compatible wrapper for statistical analysis.
+    Implements the interface expected by the batch orchestrator.
+    """
     
-    Args:
-        confidence_level: Confidence level for statistical tests
-        bootstrap_samples: Number of bootstrap samples
+    def __init__(self, hdf5_file):
+        """
+        Initialize statistical analyzer for HDF5 data.
         
-    Returns:
-        Experiment1Statistics: Configured statistical analysis instance
-    """
-    return Experiment1Statistics(
-        confidence_level=confidence_level,
-        bootstrap_samples=bootstrap_samples
-    )
+        Args:
+            hdf5_file: Path to HDF5 file containing experiment data
+        """
+        self.hdf5_file = hdf5_file
+        self.stats_engine = Experiment1Statistics(confidence_level=0.95, bootstrap_samples=1000)
+        
+        print(f"📊 Experiment1Stats initialized for: {hdf5_file}")
+        
+    def process_all_configurations(self):
+        """
+        Process statistical analysis for all configurations in HDF5 file.
+        Implements the Design Guide cross-configuration analysis pattern.
+        """
+        print("🔍 Processing statistical analysis for all configurations...")
+        
+        with h5py.File(self.hdf5_file, 'a') as f:
+            config_names = list(f.keys())
+            total_configs = len(config_names)
+            
+            print(f"Found {total_configs} configurations to analyze")
+            
+            # Process each configuration
+            for i, config_name in enumerate(config_names):
+                print(f"  Processing {i+1}/{total_configs}: {config_name}")
+                
+                try:
+                    # Read data from HDF5
+                    config_group = f[config_name]
+                    analysis_group = config_group['perturbation_analysis']
+                    
+                    delta_values = analysis_group['delta'][:]
+                    delta_E_values = analysis_group['delta_E'][:]
+                    
+                    # Run statistical analysis
+                    results = self._analyze_configuration(delta_values, delta_E_values)
+                    
+                    # Write statistical results back to HDF5
+                    self._write_stats_to_hdf5(config_group, results)
+                    
+                    print(f"    ✓ Statistical analysis completed")
+                    
+                except Exception as e:
+                    print(f"    ✗ Analysis failed: {e}")
+                    continue
+                    
+            print(f"✅ Statistical analysis completed for all configurations")
+            
+    def _analyze_configuration(self, delta_values, delta_E_values):
+        """
+        Run statistical analysis for a single configuration.
+        
+        Args:
+            delta_values: Perturbation values
+            delta_E_values: Energy changes
+            
+        Returns:
+            dict: Statistical analysis results
+        """
+        # Convert to proper arrays
+        delta_array = np.array(delta_values, dtype=np.float64)
+        delta_E_array = np.array(delta_E_values, dtype=np.float64)
+        
+        # Use existing statistical methods
+        results = {}
+        
+        try:
+            # Quadratic fitting: ΔE = C₁δ²
+            popt, pcov = curve_fit(
+                lambda x, c1: c1 * x**2,
+                delta_array,
+                delta_E_array
+            )
+            
+            C1_fitted = popt[0]
+            C1_stderr = np.sqrt(pcov[0, 0]) if pcov.size > 0 else 0.0
+            
+            # R-squared calculation
+            y_pred = C1_fitted * delta_array**2
+            ss_res = np.sum((delta_E_array - y_pred)**2)
+            ss_tot = np.sum((delta_E_array - np.mean(delta_E_array))**2)
+            r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
+            
+            # Bootstrap confidence intervals
+            bootstrap_c1 = []
+            for _ in range(100):  # Reduced for speed
+                indices = np.random.choice(len(delta_array), len(delta_array), replace=True)
+                delta_boot = delta_array[indices]
+                delta_E_boot = delta_E_array[indices]
+                
+                try:
+                    popt_boot, _ = curve_fit(
+                        lambda x, c1: c1 * x**2,
+                        delta_boot,
+                        delta_E_boot
+                    )
+                    bootstrap_c1.append(popt_boot[0])
+                except:
+                    continue
+                    
+            if bootstrap_c1:
+                ci_lower = np.percentile(bootstrap_c1, 2.5)
+                ci_upper = np.percentile(bootstrap_c1, 97.5)
+            else:
+                ci_lower = ci_upper = C1_fitted
+            
+            # Stability test: H₀: C₁ > 0
+            t_stat = C1_fitted / C1_stderr if C1_stderr > 0 else 0
+            p_value = 1 - scipy_stats.t.cdf(t_stat, len(delta_array) - 1)
+            
+            results = {
+                'C1_coefficient': float(C1_fitted),
+                'C1_stderr': float(C1_stderr),
+                'C1_ci_lower': float(ci_lower),
+                'C1_ci_upper': float(ci_upper),
+                'r_squared': float(r_squared),
+                'stability_p_value': float(p_value),
+                'stability_significant': bool(p_value < 0.05),
+                'num_data_points': int(len(delta_array))
+            }
+            
+        except Exception as e:
+            print(f"      Warning: Statistical fitting failed: {e}")
+            results = {
+                'C1_coefficient': 0.0,
+                'C1_stderr': 0.0,
+                'C1_ci_lower': 0.0,
+                'C1_ci_upper': 0.0,
+                'r_squared': 0.0,
+                'stability_p_value': 1.0,
+                'stability_significant': False,
+                'num_data_points': int(len(delta_array))
+            }
+            
+        return results
+        
+    def _write_stats_to_hdf5(self, config_group, stats_results):
+        """
+        Write statistical results to HDF5 group.
+        
+        Args:
+            config_group: HDF5 group for this configuration
+            stats_results: Statistical analysis results
+        """
+        # Create or update statistical_analysis subgroup
+        if 'statistical_analysis' in config_group:
+            del config_group['statistical_analysis']
+            
+        stats_group = config_group.create_group('statistical_analysis')
+        
+        # Store statistical results as attributes
+        for key, value in stats_results.items():
+            stats_group.attrs[key] = value
+            
+        # Store polynomial coefficients as dataset
+        coeffs = np.array([stats_results['C1_coefficient']], dtype=np.float64)
+        stats_group.create_dataset('polyfit_coeffs', data=coeffs)
+        
+        # Store bootstrap confidence intervals
+        ci_data = np.array([
+            stats_results['C1_ci_lower'],
+            stats_results['C1_ci_upper']
+        ], dtype=np.float64)
+        stats_group.create_dataset('bootstrap_CI', data=ci_data)
