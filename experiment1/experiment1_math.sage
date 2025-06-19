@@ -18,6 +18,7 @@
 import numpy as np
 import time
 import csv
+import h5py
 from sage.all import *
 
 class Experiment1Math:
@@ -456,6 +457,51 @@ class Experiment1Math:
         
         print(f"✓ Mathematical results exported to: '{filename}'")
         return filename
+    
+    def write_to_hdf5(self, results, hdf5_file, config_name):
+        """
+        Write mathematical results to HDF5 format following the Design Guide schema.
+        
+        Args:
+            results: Results from run_perturbation_sweep()
+            hdf5_file: Path to HDF5 file (will be created if doesn't exist)
+            config_name: Configuration name for group organization (e.g., 'config_1_gamma_14.13')
+            
+        Returns:
+            str: Configuration group name in HDF5 file
+        """
+        with h5py.File(hdf5_file, 'a') as f:
+            # Create configuration group (delete if exists for clean restart)
+            if config_name in f:
+                del f[config_name]
+            config_group = f.create_group(config_name)
+            
+            # Create metadata subgroup
+            metadata_group = config_group.create_group('metadata')
+            metadata_group.attrs['gamma'] = float(results['gamma'])
+            metadata_group.attrs['delta_range'] = float(results['delta_range'])
+            metadata_group.attrs['delta_steps'] = int(results['delta_steps'])
+            metadata_group.attrs['num_test_functions'] = int(results['num_test_functions'])
+            metadata_group.attrs['test_function_type'] = str(results['test_function_type'])
+            metadata_group.attrs['timestamp'] = str(results['timestamp'])
+            metadata_group.attrs['computation_time'] = float(results['computation_time'])
+            
+            # Create perturbation_analysis subgroup
+            analysis_group = config_group.create_group('perturbation_analysis')
+            analysis_group.create_dataset('delta', data=np.array(results['delta_values'], dtype=np.float64))
+            analysis_group.create_dataset('delta_E', data=np.array(results['delta_E_values'], dtype=np.float64))
+            analysis_group.create_dataset('delta_squared', data=np.array([d**2 for d in results['delta_values']], dtype=np.float64))
+            analysis_group.create_dataset('abs_delta_E', data=np.array([abs(d) for d in results['delta_E_values']], dtype=np.float64))
+            
+            # Create numerical_results subgroup for additional computational data
+            numerical_group = config_group.create_group('numerical_results')
+            if 'prime_contributions' in results:
+                numerical_group.create_dataset('prime_contributions', data=np.array(results['prime_contributions'], dtype=np.float64))
+            if 'zero_contributions' in results:
+                numerical_group.create_dataset('zero_contributions', data=np.array(results['zero_contributions'], dtype=np.float64))
+                
+        print(f"✓ Mathematical results written to HDF5: '{hdf5_file}' group '{config_name}'")
+        return config_name
 
 # Factory function for easy usage
 def create_experiment1_math(gamma=14.13, delta_range=0.1, delta_steps=41, 

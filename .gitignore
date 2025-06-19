@@ -32,7 +32,7 @@ temp/
 
 # VS Code settings (optional - you might want to keep these)
 .vscode/
-*.code-workspace
+
 
 # OS generated files
 .DS_Store

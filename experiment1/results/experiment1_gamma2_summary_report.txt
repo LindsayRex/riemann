@@ -1,85 +1,39 @@
 EXPERIMENT 1: SINGLE-ZERO PERTURBATION ANALYSIS
 ======================================================================
 
-Analysis Timestamp: 2025-06-18 12:53:50
-Total Analysis Time: 7.66 seconds
+Analysis Timestamp: 2025-06-19 15:24:30
+Dataset: 1 configurations
+Parameter Space: γ ∈ [21.022, 21.022]
 
-CONFIGURATION PARAMETERS:
-------------------------------
-gamma               : 21.022039638771552
-delta_range         : 0.12
-delta_steps         : 49
-num_test_functions  : 25
-test_function_type  : gaussian
-confidence_level    : 0.95
-bootstrap_samples   : 15000
-output_prefix       : experiment1_gamma2
-verbose             : True
-comments            : {'gamma': 'Second nontrivial Riemann zeta zero height (21.022...)', 'delta_range': 'Slightly larger range to test stability at different scales', 'delta_steps': 'More data points for better curve fitting', 'num_test_functions': 'More test functions for higher precision', 'bootstrap_samples': 'More bootstrap samples for robust confidence intervals', 'purpose': 'Test if C₁ > 0 result holds for different zero heights'}
-
-MATHEMATICAL COMPUTATION RESULTS:
+STABILITY ANALYSIS SUMMARY:
 ----------------------------------------
-Zero height (γ): 21.022039638771552
-Perturbation range: ±0.12
-Number of δ points: 49
-Computation time: 0.09 seconds
-C₁ estimate (numerical): 1.400205e+02
-C₂ estimate (numerical): 9.473903e-13
-Gradient at δ=0: -1.942890e-15
+Total Configurations: 1
+Stable Coefficients (C₁ > 0): 1 (100.0%)
+Mean C₁ Coefficient: 1.403e+02
+Mean R² (Fit Quality): 1.000000
+Significant Stability (p < 0.05): 1 (100.0%)
 
-STATISTICAL ANALYSIS RESULTS:
------------------------------------
-QUADRATIC MODEL:
-  R² = 1.000000
-  AIC = -764.64
-  C₁ = 1.402575e+02 ± 7.32e-03
+DETAILED CONFIGURATION RESULTS:
+----------------------------------------
+Config                         γ            Type       C₁              R²         p-value   
+------------------------------------------------------------------------------------------
+1γ21_022039638771552_gaussia   21.022       gaussian   1.403e+02       1.000000   0.000e+00 
 
-CUBIC MODEL:
-  R² = 1.000000
-  AIC = -762.64
-  C₁ = 1.402575e+02 ± 7.40e-03
-  C₂ = -2.627525e-06 ± 4.56e-02
+STATISTICAL SUMMARY:
+----------------------------------------
+Overall Assessment: STABLE
+Riemann Hypothesis Support: Energy functional exhibits local stability
+Mathematical Significance: C₁ > 0 confirmed across all configurations
 
-QUARTIC MODEL:
-  R² = 1.000000
-  AIC = -997.00
-  C₁ = 1.400891e+02 ± 2.24e-03
-  C₂ = 2.279608e-06 ± 3.21e-03
-
-HYPOTHESIS TESTING:
---------------------
-Local Stability Test (C₁ > 0):
-  t-statistic: 18943.8473
-  p-value: 0.000000
-  Result: STABLE
-
-Cubic Term Significance (C₂ ≠ 0):
-  t-statistic: -0.0001
-  p-value: 0.999954
-  Result: NOT SIGNIFICANT
-
-BOOTSTRAP ANALYSIS:
---------------------
-Successful samples: 15000
-C₁ bootstrap mean: 1.402537e+02
-C₁ 95% CI: [1.40e+02, 1.40e+02]
-
-BEST MODEL SELECTION:
-----------------------
-Selected model: QUARTIC
-AIC: -997.00
-R²: 1.000000
+EXPERIMENTAL DETAILS:
+----------------------------------------
+Energy Functional: Single-zero perturbation ΔE(δ) = C₁δ² + C₂δ³ + ...
+Test Function Basis: gaussian
+Statistical Methods: Polynomial fitting, bootstrap confidence intervals, hypothesis testing
 
 GENERATED FILES:
-----------------
-  math_csv: experiment1_gamma2_math_results.csv
-  stats_csv: experiment1_gamma2_stats_results.csv
-  comprehensive_plot: experiment1_gamma2_comprehensive_analysis.png
-  publication_plot: experiment1_gamma2_publication_figure.png
+--------------------
+  HDF5 data: experiment1/data/experiment1_gamma2.h5
+  Summary images: experiment1_summary_1.png through experiment1_summary_5.png
+  This report: experiment1/results/experiment1_gamma2_summary_report.txt
 
-EXPERIMENTAL CONCLUSIONS:
--------------------------
-✓ LOCAL STABILITY CONFIRMED: C₁ > 0 is statistically significant
-  The critical line (δ=0) is a local minimum of the energy functional
-✓ QUADRATIC DOMINANCE: C₂ ≈ 0, quadratic behavior confirmed
-  Energy functional is well-approximated by ΔE ≈ C₁δ²
