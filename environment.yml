@@ -3,38 +3,20 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  # Core mathematical environment
+  # Core mathematical environment (from install history)
   - python=3.12
   - sage=10.6
-  
-  # Essential numerical computing packages
-  - numpy
-  - scipy
-  - matplotlib-base
   - h5py
-  - pandas
   
-  # Jupyter environment (required by SageMath)
-  - jupyterlab
-  - jupyter_client
-  - jupyter_core
-  - jupyter_server
-  - ipykernel
-  - ipywidgets
+  # Document generation
+  - pandoc  # For markdown to HTML+MathJax conversion
   
-  # Additional mathematical libraries used by experiments
-  - sympy
-  - mpmath
-  
-  # Development and analysis tools
-  - git
-  
-  # Document generation tools
-  - pandoc  # For markdown to PDF conversion with math rendering
-  
-  # Optional: for advanced plotting if needed
-  # - plotly
-  # - seaborn
+  # pip included for potential future project-specific packages
 
-# Note: PDF generation uses Pandoc + Chrome headless
-# Chrome/Chromium must be installed separately on the system
+# PDF Generation Requirements:
+# Chrome/Chromium must be installed separately on the system for PDF generation
+# The workflow is: Markdown → Pandoc → HTML+MathJax → Chrome headless → PDF
+#
+# Install Chrome/Chromium via system package manager:
+# Ubuntu/Debian: sudo apt install google-chrome-stable
+# macOS: brew install --cask google-chrome
