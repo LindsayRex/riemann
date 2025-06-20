@@ -23,6 +23,7 @@ This repository contains experimental mathematics code testing the Universal Cri
 ### Results & Analysis
 - **[Universal Critical Restoration Conjecture Analysis](results/universal_critical_restoration_conjecture_analysis.md)** - Comprehensive research report with experimental evidence
 - **[PDF Report](results/universal_critical_restoration_conjecture_analysis.pdf)** - Publication-quality PDF with typeset mathematics
+- **[Broader Implications of Research](results/Broader%20Implications%20of%20Research.md)** - Summary of conceptual and technical advances
 
 ## Repository Structure
 
