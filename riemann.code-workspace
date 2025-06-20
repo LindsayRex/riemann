@@ -5,16 +5,16 @@
 		}
 	],
 	"settings": {
-		// Terminal and environment configuration
+		// Terminal and environment configuration - simplified for GitHub Copilot compatibility
 		"python.defaultInterpreterPath": "/home/rexl1/miniconda3/envs/sagemath/bin/python",
 		"python.terminal.activateEnvironment": true,
 		"terminal.integrated.defaultProfile.linux": "bash",
 		"terminal.integrated.cwd": "${workspaceFolder}",
-		"terminal.integrated.profiles.linux": {
-			"bash": {
-				"path": "/bin/bash",
-				"args": ["-c", "source /home/rexl1/miniconda3/etc/profile.d/conda.sh && conda activate sagemath && exec bash"]
-			}
+		
+		// Node.js configuration for MCP servers
+		"terminal.integrated.env.linux": {
+			"NODE_PATH": "/home/rexl1/.nvm/versions/node/v20.12.2/lib/node_modules",
+			"PATH": "/home/rexl1/.nvm/versions/node/v20.12.2/bin:${env:PATH}"
 		},
 		
 		// File associations for SageMath
@@ -87,14 +87,7 @@
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "new"
-				},
-				"problemMatcher": []
+				}
 			},
 			{
 				"label": "Run Experiment 2", 
@@ -104,14 +97,7 @@
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "new"
-				},
-				"problemMatcher": []
+				}
 			},
 			{
 				"label": "Run Experiment 3 (Small)",
@@ -121,14 +107,7 @@
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always", 
-					"focus": false,
-					"panel": "new"
-				},
-				"problemMatcher": []
+				}
 			},
 			{
 				"label": "Generate Analysis Report",
@@ -138,14 +117,7 @@
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}"
-				},
-				"presentation": {
-					"echo": true,
-					"reveal": "always",
-					"focus": false,
-					"panel": "new"
-				},
-				"problemMatcher": []
+				}
 			}
 		]
 	}
