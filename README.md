@@ -148,7 +148,7 @@ python experiment3/generate_phase3_config.py
 - **Browser:** Chrome/Chromium for PDF generation (must be installed separately)
 
 ### PDF Generation Requirements
-For generating research reports with perfect math rendering:
+For generating research reports with support for mathematical LaTeX notation rendering:
 - **Chrome or Chromium browser** (install via system package manager)
 - **Pandoc** (included in conda environment)
 
