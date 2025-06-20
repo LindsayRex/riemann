@@ -8,10 +8,19 @@ This repository contains experimental mathematics code testing the **Universal C
 
 ## Project Documentation
 
-- **[Research Background](reserach_background.md)** - Complete mathematical background and motivation for the energy-based approach
-- **[Project Plan](project_plan/)** - Design documents and technical specifications
-  - [L-Function Zero Energy Functional](project_plan/L_Function_Zero_Energy_Functional.md)
-  - [Experiment Pipeline Design Guide](project_plan/Riemann_Experiment_Pipeline_Design_Guide.md)
+### Research Foundation
+- **[01. Research Background](research/01_Reserach_background.md)** - Complete mathematical background and motivation for the energy-based approach
+- **[02. Heuristic Framework for Evaluating Mathematical Proof Strategies](research/02_Heuristic%20Framework%20for%20Evaluating%20Mathematical%20Proof%20Strategies.md)** - Methodology for proof strategy evaluation
+- **[03. Generalized Riemann Hypothesis](research/03_Generalized_Riemann_Hypothesis_v01.md)** - Extensions to L-functions and broader contexts
+
+### Project Plan & Implementation
+- **[04. L-Function Zero Energy Functional](project_plan/04_L_Function_Zero_Energy_Functional.md)** - Mathematical framework and energy functional definition
+- **[05. Experiment Pipeline Design Guide](project_plan/05_experiment_pipeline_design_guide.md)** - Technical specifications and experimental methodology
+- **[06. Report Architecture](project_plan/06_report_architecture.md)** - Documentation structure and report generation specifications
+
+### Results & Analysis
+- **[Universal Critical Restoration Conjecture Analysis](results/universal_critical_restoration_conjecture_analysis.md)** - Comprehensive research report with experimental evidence
+- **[PDF Report](results/universal_critical_restoration_conjecture_analysis.pdf)** - Publication-quality PDF with typeset mathematics
 
 ## Experiments
 
@@ -83,12 +92,39 @@ sage experiment3/experiment3_batch.sage experiment3/experiment3_config_phase3_fu
 
 ## Requirements
 
+### Core Requirements
 - **Conda/Miniconda** for environment management
 - **SageMath 10.6+** with HDF5 support (installed via conda)
 - **Python 3.12+** with numpy, matplotlib, scipy, h5py, pandas
-- **System:** Linux/macOS recommended, 16+ GB RAM for large experiments
+- **Pandoc** for document generation (included in environment)
 
-The provided `environment.yml` file will install all necessary dependencies.
+### System Requirements
+- **OS:** Linux/macOS recommended
+- **RAM:** 16+ GB for large experiments
+- **Browser:** Chrome/Chromium for PDF generation (must be installed separately)
+
+### PDF Generation Requirements
+For generating research reports with perfect math rendering:
+- **Chrome or Chromium browser** (install via system package manager)
+- **Pandoc** (included in conda environment)
+
+The PDF generation uses: **Markdown → Pandoc → HTML+MathJax → Chrome headless → PDF**
+
+### Installation
+
+The provided `environment.yml` file installs all conda dependencies. Chrome must be installed separately:
+
+```bash
+# Ubuntu/Debian
+sudo apt install google-chrome-stable
+# or
+sudo apt install chromium-browser
+
+# macOS
+brew install --cask google-chrome
+# or
+brew install chromium
+```
 
 ## Quick Start
 
@@ -111,20 +147,78 @@ The provided `environment.yml` file will install all necessary dependencies.
 
 - **Experiment Results:** Each experiment generates summary reports and visualizations in its `results/` directory
 - **Comprehensive Analysis:** See `analysis/` folder for combined analysis across all experiments
-- **Report Generation:** Use `analysis/generate_universal_critical_restoration_report.py` to generate full research report
+
+### Report Generation
+
+The project includes advanced report generation with perfect math rendering:
+
+```bash
+# Generate markdown report with cherry-picked images
+python analysis/generate_markdown.py
+
+# Generate beautiful PDF with rendered math equations
+python analysis/generate_pdf.py
+```
+
+**Output Location:** All reports are generated in the `results/` folder:
+- `universal_critical_restoration_conjecture_analysis.md` - Comprehensive markdown report
+- `universal_critical_restoration_conjecture_analysis.pdf` - Professional PDF with typeset math
+
+**Features:**
+- ✅ Perfect LaTeX math rendering (equations display as beautiful mathematical formulas)
+- ✅ Cherry-picked key images from all experiments  
+- ✅ Professional CSS styling and formatting
+- ✅ Table of contents and cross-references
+- ✅ Publication-quality output suitable for research submission
 
 
-## File Structure
+## Repository Structure
 
 ```
 riemann/
-├── experiment1/          # Single-zero perturbation analysis
-├── experiment2/          # Two-zero interaction analysis  
-├── experiment3/          # Multi-zero scaling analysis
-├── analysis/             # Combined analysis and report generation
-├── project_plan/         # Design documents and specifications
-├── backup/               # Backup files
-└── README.md            # This file
+├── research/                    # Research documentation and background
+│   ├── 01_Reserach_background.md          # Complete mathematical background
+│   ├── 02_Heuristic Framework...md        # Proof strategy evaluation methodology  
+│   └── 03_Generalized_Riemann_Hypothesis_v01.md  # L-function extensions
+├── project_plan/               # Technical specifications and design
+│   ├── 04_L_Function_Zero_Energy_Functional.md    # Mathematical framework
+│   ├── 05_experiment_pipeline_design_guide.md     # Experimental methodology
+│   └── 06_report_architecture.md                  # Documentation structure
+├── experiment1/                # Single-zero perturbation analysis
+│   ├── experiment1_batch.sage             # Main batch processor
+│   ├── experiment1_config*.json           # Configuration files
+│   ├── experiment1_math.sage              # Core mathematical computations
+│   ├── experiment1_stats.sage             # Statistical analysis
+│   ├── experiment1_viz.sage               # Visualization generation
+│   ├── data/                              # HDF5 computation results
+│   └── results/                           # Summary reports and visualizations
+├── experiment2/                # Two-zero interaction analysis  
+│   ├── experiment2_batch.sage             # Main batch processor
+│   ├── experiment2_config*.json           # Configuration files
+│   ├── experiment2_math.sage              # Core mathematical computations
+│   ├── experiment2_stats.sage             # Statistical analysis
+│   ├── experiment2_viz.sage               # Visualization generation
+│   ├── data/                              # HDF5 computation results
+│   └── results/                           # Summary reports and visualizations
+├── experiment3/                # Multi-zero scaling analysis
+│   ├── experiment3_batch.sage             # Main batch processor
+│   ├── experiment3_config*.json           # Configuration files
+│   ├── experiment3_math.sage              # Core mathematical computations
+│   ├── experiment3_stats.sage             # Statistical analysis
+│   ├── experiment3_viz.sage               # Visualization generation
+│   ├── data/                              # HDF5 computation results
+│   └── results/                           # Summary reports and visualizations
+├── analysis/                   # Report generation and cross-experiment analysis
+│   ├── generate_markdown.py               # Markdown report generator
+│   ├── generate_pdf.py                    # PDF report generator with math rendering
+│   └── custom_template.html               # HTML template for PDF generation
+├── results/                    # Final publication-quality reports
+│   ├── images/                            # 13 cherry-picked key visualizations
+│   ├── universal_critical_restoration_conjecture_analysis.md  # Comprehensive report
+│   └── universal_critical_restoration_conjecture_analysis.pdf # Publication PDF
+├── environment.yml             # Conda environment specification
+├── riemann.code-workspace      # VS Code workspace configuration
+└── README.md                   # This documentation
 ```
 
 ## Contributing

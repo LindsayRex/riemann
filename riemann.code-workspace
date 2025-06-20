@@ -113,7 +113,17 @@
 				"label": "Generate Analysis Report",
 				"type": "shell",
 				"command": "python",
-				"args": ["analysis/generate_universal_critical_restoration_report.py"],
+				"args": ["analysis/generate_markdown.py"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}"
+				}
+			},
+			{
+				"label": "Generate PDF Report",
+				"type": "shell",
+				"command": "python",
+				"args": ["analysis/generate_pdf.py"],
 				"group": "build",
 				"options": {
 					"cwd": "${workspaceFolder}"

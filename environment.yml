@@ -29,6 +29,12 @@ dependencies:
   # Development and analysis tools
   - git
   
+  # Document generation tools
+  - pandoc  # For markdown to PDF conversion with math rendering
+  
   # Optional: for advanced plotting if needed
   # - plotly
   # - seaborn
+
+# Note: PDF generation uses Pandoc + Chrome headless
+# Chrome/Chromium must be installed separately on the system
