@@ -4,7 +4,11 @@ A computational investigation of the Riemann Hypothesis through energy minimizat
 
 ## Overview
 
+<img src="20250620_2006_Holographic Gradient Field.png" align="left" width="300" style="margin-right: 20px; margin-bottom: 10px;">
+
 This repository contains experimental mathematics code testing the **Universal Critical Restoration conjecture** - a novel reformulation of the Riemann Hypothesis as an energy minimization problem. Instead of proving where zeros must lie, we treat zero configurations as physical systems and measure the energy changes when zeros are perturbed from the critical line.
+
+<br clear="left">
 
 ## Project Documentation
 
