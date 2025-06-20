@@ -1,6 +1,6 @@
 # Universal Critical Restoration Conjecture
 
-A computational investigation of the Riemann Hypothesis through energy minimization and variational methods.
+A computational investigation of the Riemann Hypothesis through energy minimization and variational methods. This program is not just about getting a “yes or no” to the Riemann Hypothesis. It’s a research path to build new mathematics, step by step: Discovery → Conjecture → Proof. 
 
 ## Overview
 
