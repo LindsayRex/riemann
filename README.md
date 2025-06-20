@@ -217,6 +217,16 @@ python analysis/generate_pdf.py
 
 This is a research codebase. For questions about the mathematical background or computational methods, please refer to the documentation in `project_plan/` and `reserach_background.md`.
 
-## License
+## 🧾 License
 
-Research code - see individual files for specific terms.
+### 📘 Theory and Written Work
+This research project, including mathematical conjectures, documentation, and analysis files (`*.md`, `*.pdf`, `*.tex`), is licensed under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](LICENSE-CC-BY).
+
+Feel free to reuse, extend, or cite this work with attribution to the author: **Lindsay Rex**.
+
+### 🧠 Source Code
+All code in this repository (`*.py`, `*.sage`, `*.yml`, `*.json`) is licensed under the [MIT License](LICENSE), allowing unrestricted use with attribution.
+
+---
+
+For full legal text, see [LICENSE](LICENSE) and [LICENSE-CC-BY](LICENSE-CC-BY) in the repository root.
