@@ -17,11 +17,13 @@ class UniversalCriticalRestorationReport:
     def __init__(self, base_dir="/home/rexl1/riemann"):
         self.base_dir = Path(base_dir)
         self.analysis_dir = self.base_dir / "analysis"
-        self.output_file = self.analysis_dir / "universal_critical_restoration_conjecture_analysis.md"
+        self.results_dir = self.base_dir / "results"
+        self.output_file = self.results_dir / "universal_critical_restoration_conjecture_analysis.md"
         self.images_dir = self.analysis_dir / "images"
         
         # Create directories
         self.analysis_dir.mkdir(exist_ok=True)
+        self.results_dir.mkdir(exist_ok=True)
         self.images_dir.mkdir(exist_ok=True)
         
         # Experiment directories
